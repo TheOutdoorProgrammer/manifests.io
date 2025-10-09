@@ -29,25 +29,25 @@ jobs:
         with:
           platforms: linux/arm64
           push: true
-          tags: ghcr.io/theoutdoorprogramer/manifestsio:latest
+          tags: ghcr.io/theoutdoorprogrammer/manifestsio:latest
 
       - name: Build and push SHA-tagged image
         uses: docker/build-push-action@v6
         with:
           platforms: linux/arm64
           push: true
-          tags: ghcr.io/theoutdoorprogramer/manifestsio:${{ github.sha }}
+          tags: ghcr.io/theoutdoorprogrammer/manifestsio:${{ github.sha }}
 
       - name: Checkout flux repository
         uses: actions/checkout@v4
         with:
-          repository: theoutdoorprogramer/flux
+          repository: theoutdoorprogrammer/flux
           ssh-key: ${{ secrets.FLUX_DEPLOY_KEY }}
           path: flux-repo
 
       - name: Update deployment file in flux repo
         run: |
-          sed -i 's|image: .*|image: ghcr.io/theoutdoorprogramer/manifestsio:${{ github.sha }}|' flux-repo/clusters/home/manifestsio/deployment.yaml
+          sed -i 's|image: .*|image: ghcr.io/theoutdoorprogrammer/manifestsio:${{ github.sha }}|' flux-repo/clusters/home/manifestsio/deployment.yaml
 
       - name: Commit and push changes to flux repo
         run: |
