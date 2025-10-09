@@ -1,6 +1,6 @@
 import SearchBar from "./SearchBar";
 import styles from "./Layout.module.css";
-import HeartApollorion from "@/components/HeartApollorion";
+import HeartTheOutdoorProgrammer from "@/components/HeartTheOutdoorProgrammer";
 
 type Props = {
     children: React.ReactNode;
@@ -27,7 +27,7 @@ export default function Layout({children, item, version, resource, linked}: Prop
             </header>
             {children}
             <footer style={{display: 'flex', justifyContent: 'center'}}>
-                <HeartApollorion/>
+                <HeartTheOutdoorProgrammer/>
             </footer>
         </>
     )
