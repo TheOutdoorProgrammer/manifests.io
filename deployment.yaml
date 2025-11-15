@@ -23,6 +23,21 @@ spec:
           image: <IMAGE>
           ports:
             - containerPort: 3000
+          env:
+            # OpenTelemetry Configuration
+            # Set OTEL_EXPORTER_OTLP_ENDPOINT to enable tracing
+            # Example: http://otel-collector.observability.svc.cluster.local:4318
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: ""  # Set to your OTLP endpoint or leave empty to disable tracing
+            - name: OTEL_SERVICE_NAME
+              value: "manifestsio"
+            - name: OTEL_SERVICE_VERSION
+              value: "0.1.0"
+            - name: OTEL_DEPLOYMENT_ENVIRONMENT
+              value: "production"
+            # Optional: Add authentication headers if required
+            # - name: OTEL_EXPORTER_OTLP_HEADERS
+            #   value: "Authorization=Bearer token123"
 ---
 apiVersion: v1
 kind: Service

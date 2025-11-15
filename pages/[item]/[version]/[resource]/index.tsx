@@ -8,6 +8,7 @@ import ManifestsHeading from "@/components/ManifestsHeading";
 import {NextParsedUrlQuery} from "next/dist/server/request-meta";
 import {K8sDefinitions, K8sProperty, K8sPropertyArray} from "@/typings/KubernetesSpec";
 import {Resource} from "@/typings/Resource";
+import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 type OtherVersions = {
     keys: Array<string>;
@@ -111,7 +112,11 @@ export default function Home({
     )
 }
 
+const tracer = trace.getTracer('manifestsio-pages');
+
 export const getServerSideProps: GetServerSideProps = async ({query}) => {
+    return tracer.startActiveSpan('getServerSideProps.resourceDetail', async (span) => {
+        try {
     function parseQuery(query: NextParsedUrlQuery) {
         let {item, version, resource, linked, oneOf, key} = query;
         if (Array.isArray(item) || !item) {
@@ -260,6 +265,10 @@ export const getServerSideProps: GetServerSideProps = async ({query}) => {
 
     const {item, version, resource, linked, oneOf, key} = parseQuery(query);
 
+    span.setAttribute('manifestsio.item', item);
+    span.setAttribute('manifestsio.version', version);
+    span.setAttribute('manifestsio.resource', resource);
+
     let spec = oaspecFetch(item, version);
 
     let linkedResource = defaultString(linked, popString(resource));
@@ -300,7 +309,19 @@ export const getServerSideProps: GetServerSideProps = async ({query}) => {
         props["oneOf"] = oneOfClicked;
     }
 
+    span.setStatus({ code: SpanStatusCode.OK });
     return {
         props
     }
+        } catch (error) {
+            span.setStatus({
+                code: SpanStatusCode.ERROR,
+                message: error instanceof Error ? error.message : 'Unknown error'
+            });
+            span.recordException(error as Error);
+            throw error;
+        } finally {
+            span.end();
+        }
+    });
 }
