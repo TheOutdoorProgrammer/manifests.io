@@ -6,9 +6,11 @@ export async function register() {
     const {
       ATTR_SERVICE_NAME,
       ATTR_SERVICE_VERSION,
-      ATTR_DEPLOYMENT_ENVIRONMENT,
     } = await import('@opentelemetry/semantic-conventions');
     const { getNodeAutoInstrumentations } = await import('@opentelemetry/auto-instrumentations-node');
+
+    // deployment.environment semantic convention
+    const ATTR_DEPLOYMENT_ENVIRONMENT = 'deployment.environment';
 
     // Only initialize if OTLP endpoint is configured
     const otlpEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
@@ -43,7 +45,9 @@ export async function register() {
           // Configure HTTP instrumentation to capture useful headers
           '@opentelemetry/instrumentation-http': {
             requestHook: (span, request) => {
-              span.setAttribute('http.user_agent', request.headers['user-agent'] || 'unknown');
+              if ('headers' in request && request.headers) {
+                span.setAttribute('http.user_agent', request.headers['user-agent'] || 'unknown');
+              }
             },
           },
         }),

@@ -2,9 +2,6 @@
 const nextConfig = {
   output: "standalone",
   reactStrictMode: true,
-  experimental: {
-    instrumentationHook: true,
-  },
   headers: async () => {
     return [
         {
