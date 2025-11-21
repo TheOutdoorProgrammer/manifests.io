@@ -54,6 +54,6 @@ jobs:
           cd flux-repo
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add clusters/home/manifestsio/deployment.yaml
+          git add clusters/home-no-auto/manifestsio/deployment.yaml
           git commit -m "Update manifestsio image to ${{ github.sha }}" || exit 0
           git push
