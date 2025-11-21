@@ -57,11 +57,3 @@ jobs:
           git add clusters/home/manifestsio/deployment.yaml
           git commit -m "Update manifestsio image to ${{ github.sha }}" || exit 0
           git push
-
-      - name: Purge Cloudflare cache
-        run: |
-          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}' \
-            --fail-with-body
