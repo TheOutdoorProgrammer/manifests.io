@@ -47,7 +47,7 @@ jobs:
 
       - name: Update deployment file in flux repo
         run: |
-          sed -i 's|image: .*|image: ghcr.io/theoutdoorprogrammer/manifestsio:${{ github.sha }}|' flux-repo/clusters/home/manifestsio/deployment.yaml
+          sed -i 's|image: .*|image: ghcr.io/theoutdoorprogrammer/manifestsio:${{ github.sha }}|' flux-repo/clusters/home-no-auto/manifestsio/deployment.yaml
 
       - name: Commit and push changes to flux repo
         run: |
