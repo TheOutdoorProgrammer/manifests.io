@@ -1,1 +1,1 @@
-export { GET, runtime } from '@gremllm/nextjs/route';
+export { GET } from '@gremllm/nextjs/route';
