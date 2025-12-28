@@ -287,10 +287,10 @@
   resolved "https://registry.npmjs.org/@fastify/busboy/-/busboy-2.1.1.tgz"
   integrity sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==
 
-"@gremllm/nextjs@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@gremllm/nextjs/-/nextjs-0.1.0.tgz#e731f594047fe28b09fbfeeb9c99d1fe67b490c1"
-  integrity sha512-JUY+usfuHmzPN7vKKAcRMYWFlKhNUeZ8CEKZaJ9OPhjyLmdYttx3cj3sInx7QVdS8i6gQK5cHDh2Vxf0I7Z4Sg==
+"@gremllm/nextjs@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@gremllm/nextjs/-/nextjs-0.2.0.tgz#d592e15c6bbc8c3461cbeb5c4ba63c196271891b"
+  integrity sha512-47+L2iDd+xZkIEe8Y+61riuc/H88yoJe3tW5+bv45D9gF8rCxSDXmSj6u7kaWhdLnSMKFE2QccMk+AuZo5oiIA==
   dependencies:
     koffi "^2.9.0"
 
@@ -4086,14 +4086,9 @@ keyv@^4.5.4:
   dependencies:
     json-buffer "3.0.1"
 
-koffi@^2.15.0:
+koffi@^2.15.0, koffi@^2.9.0:
   version "2.15.0"
   resolved "https://registry.yarnpkg.com/koffi/-/koffi-2.15.0.tgz#258c993d235edf131022693e3c19e8c6ea1bb6d1"
-  integrity sha512-174BTuWK7L42Om7nDWy9YOTXj6Dkm14veuFf5yhVS5VU6GjtOI1Wjf+K16Z0JvSuZ3/NpkVzFBjE1oKbthTIEA==
-
-koffi@^2.9.0:
-  version "2.15.0"
-  resolved "https://registry.npmjs.org/koffi/-/koffi-2.15.0.tgz"
   integrity sha512-174BTuWK7L42Om7nDWy9YOTXj6Dkm14veuFf5yhVS5VU6GjtOI1Wjf+K16Z0JvSuZ3/NpkVzFBjE1oKbthTIEA==
 
 language-subtag-registry@^0.3.20:
