@@ -1,0 +1,1 @@
+export { GET, runtime } from '@gremllm/nextjs/route';

@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const { withGremllm } = require('@gremllm/nextjs');
+
+const nextConfig = withGremllm({
   output: "standalone",
   reactStrictMode: true,
   headers: async () => {
@@ -15,6 +17,6 @@ const nextConfig = {
         }
     ]
   }
-}
+});
 
 module.exports = nextConfig
