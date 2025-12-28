@@ -50,6 +50,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy gremllm native binaries
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@gremllm/nextjs/binaries ./binaries
+
 USER nextjs
 
 EXPOSE 3000
