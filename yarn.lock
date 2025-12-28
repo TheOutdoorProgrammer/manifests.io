@@ -287,10 +287,10 @@
   resolved "https://registry.npmjs.org/@fastify/busboy/-/busboy-2.1.1.tgz"
   integrity sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==
 
-"@gremllm/nextjs@0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@gremllm/nextjs/-/nextjs-0.4.0.tgz#c86cb7961ab3d81ccbf79a862f959b8fd93376ee"
-  integrity sha512-+JnF7wmUkcisV+YjX8+3te9AOvgl1z8TfJdObbagOY1znnUX0IWL6PGDkGicPpLabuZ1mt4/KRScPgYG8KhYQg==
+"@gremllm/nextjs@0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@gremllm/nextjs/-/nextjs-0.7.0.tgz#7c9ab9207244500e9c8c9fe217eef2be30ca2281"
+  integrity sha512-k1tdtMnyDc5PNnPGcgGo7M2/5cP7ascjGxtGnX5BZ3lUSSV7xsoO3gu/iANhNqAd+B4tr+MdegS7kWnKJWNcIA==
   dependencies:
     koffi "^2.9.0"
 
