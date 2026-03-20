@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cf": "npx opennextjs-cloudflare build",
     "start": "next start",
     "lint": "next lint",
     "etl": "./ETL/script.sh"
@@ -13,6 +14,7 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@next/font": "14.2.15",
+    "@opennextjs/cloudflare": "^1.17.1",
     "@opentelemetry/api-logs": "^0.213.0",
     "@opentelemetry/exporter-logs-otlp-http": "^0.213.0",
     "@opentelemetry/resources": "^2.6.0",
