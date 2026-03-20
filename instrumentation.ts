@@ -57,9 +57,9 @@ export async function register() {
     const { BatchLogRecordProcessor } = await import('@opentelemetry/sdk-logs');
     const { OTLPLogExporter } = await import('@opentelemetry/exporter-logs-otlp-http');
     const { LoggerProvider } = await import('@opentelemetry/sdk-logs');
-    const { Resource } = await import('@opentelemetry/resources');
+    const { resourceFromAttributes } = await import('@opentelemetry/resources');
 
-    const resource = new Resource({
+    const resource = resourceFromAttributes({
       'service.name': 'manifestsio',
     });
 
@@ -70,7 +70,9 @@ export async function register() {
       },
     });
 
-    const loggerProvider = new LoggerProvider({ resource });
-    loggerProvider.addLogRecordProcessor(new BatchLogRecordProcessor(logExporter));
+    const loggerProvider = new LoggerProvider({
+      resource,
+      processors: [new BatchLogRecordProcessor(logExporter)],
+    });
   }
 }
