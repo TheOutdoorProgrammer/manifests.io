@@ -1,4 +1,5 @@
 import React, {Component, ErrorInfo, ReactNode} from "react";
+import posthog from "posthog-js";
 import ErrorBoundaryContent from "@/components/ErrorBoundaryContent";
 
 interface Props {
@@ -15,12 +16,12 @@ class ErrorBoundary extends Component<Props, State> {
     };
 
     public static getDerivedStateFromError(_: Error): State {
-        // Update state so the next render will show the fallback UI.
         return {hasError: true};
     }
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error("Uncaught error:", error, errorInfo);
+        posthog.captureException(error);
     }
 
     public render() {
