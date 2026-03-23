@@ -2,6 +2,7 @@
   "name": "manifests-io",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "yarn@4.9.1",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
