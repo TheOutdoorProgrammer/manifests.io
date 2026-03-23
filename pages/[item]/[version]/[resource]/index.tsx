@@ -8,7 +8,6 @@ import ManifestsHeading from "@/components/ManifestsHeading";
 import {NextParsedUrlQuery} from "next/dist/server/request-meta";
 import {K8sDefinitions, K8sProperty, K8sPropertyArray} from "@/typings/KubernetesSpec";
 import {Resource} from "@/typings/Resource";
-import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 type OtherVersions = {
     keys: Array<string>;
@@ -111,8 +110,6 @@ export default function Home({
         </Layout>
     )
 }
-
-const tracer = trace.getTracer('manifestsio-pages');
 
 // Helper functions for getServerSideProps
 function parseQuery(query: NextParsedUrlQuery) {
@@ -261,67 +258,49 @@ function findOtherResourceVersions(resourceSearch: string, spec: K8sDefinitions)
 }
 
 export const getServerSideProps: GetServerSideProps = async ({query}) => {
-    return tracer.startActiveSpan('getServerSideProps.resourceDetail', async (span) => {
-        try {
-            const {item, version, resource, linked, oneOf, key} = parseQuery(query);
+    const {item, version, resource, linked, oneOf, key} = parseQuery(query);
 
-            span.setAttribute('manifestsio.item', item);
-            span.setAttribute('manifestsio.version', version);
-            span.setAttribute('manifestsio.resource', resource);
+    let spec = oaspecFetch(item, version);
 
-            let spec = oaspecFetch(item, version);
+    let linkedResource = defaultString(linked, popString(resource));
+    const resources = getResourceArrayFromSpec(spec, resource, linked);
+    const otherVersions = findOtherResourceVersions(resource, spec);
+    let otherPropertyVersions: OtherPropertyVersions = findOtherPropertyVersions(resource, spec);
 
-            let linkedResource = defaultString(linked, popString(resource));
-            const resources = getResourceArrayFromSpec(spec, resource, linked);
-            const otherVersions = findOtherResourceVersions(resource, spec);
-            let otherPropertyVersions: OtherPropertyVersions = findOtherPropertyVersions(resource, spec);
+    let oneOfClicked: Array<Resource> | null = null;
+    if (oneOf && key) {
+        spec = {};
+        spec[resource] = otherPropertyVersions[key][oneOf];
+        linkedResource = `${linkedResource}.${key}`
+        oneOfClicked = getResourceArrayFromSpec(spec, resource, undefined)
+        otherPropertyVersions = {};
+    }
 
-            let oneOfClicked: Array<Resource> | null = null;
-            if (oneOf && key) {
-                spec = {};
-                spec[resource] = otherPropertyVersions[key][oneOf];
-                linkedResource = `${linkedResource}.${key}`
-                oneOfClicked = getResourceArrayFromSpec(spec, resource, undefined)
-                otherPropertyVersions = {};
-            }
+    const resourceSpec = spec[resource];
 
-            const resourceSpec = spec[resource];
+    let props: Props = {
+        resources,
+        item,
+        version,
+        linkedResource,
+        description: defaultString(resourceSpec.description),
+        resource,
+        otherVersions
+    };
 
-            let props: Props = {
-                resources,
-                item,
-                version,
-                linkedResource,
-                description: defaultString(resourceSpec.description),
-                resource,
-                otherVersions
-            };
+    if (resourceSpec.required) {
+        props["required"] = resourceSpec.required;
+    }
 
-            if (resourceSpec.required) {
-                props["required"] = resourceSpec.required;
-            }
+    if (Object.keys(otherPropertyVersions).length > 0) {
+        props["otherPropertyVersions"] = otherPropertyVersions;
+    }
 
-            if (Object.keys(otherPropertyVersions).length > 0) {
-                props["otherPropertyVersions"] = otherPropertyVersions;
-            }
+    if (oneOfClicked) {
+        props["oneOf"] = oneOfClicked;
+    }
 
-            if (oneOfClicked) {
-                props["oneOf"] = oneOfClicked;
-            }
-
-            span.setStatus({ code: SpanStatusCode.OK });
-            return {
-                props
-            }
-        } catch (error) {
-            span.setStatus({
-                code: SpanStatusCode.ERROR,
-                message: error instanceof Error ? error.message : 'Unknown error'
-            });
-            span.recordException(error as Error);
-            throw error;
-        } finally {
-            span.end();
-        }
-    });
+    return {
+        props
+    }
 }

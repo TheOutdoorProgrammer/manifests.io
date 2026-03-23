@@ -1,5 +1,4 @@
 import {K8sDefinitions} from "@/typings/KubernetesSpec";
-import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 import kubernetes134 from "../oaspec/kubernetes/1.34.json";
 import kubernetes133 from "../oaspec/kubernetes/1.33.json";
@@ -40,28 +39,8 @@ import spaceliftoperator010 from "../oaspec/spaceliftoperator/0.1.0.json";
 
 import spaceliftworkerpool0021 from "../oaspec/spaceliftworkerpool/0.0.21.json";
 
-const tracer = trace.getTracer('manifestsio-oaspec');
-
 export function oaspecFetch(item: string, version: string): K8sDefinitions {
-    return tracer.startActiveSpan('oaspec.fetch', (span) => {
-        span.setAttribute('oaspec.item', item);
-        span.setAttribute('oaspec.version', version);
-
-        try {
-            const result = fetchSpec(item, version);
-            span.setStatus({ code: SpanStatusCode.OK });
-            return result;
-        } catch (error) {
-            span.setStatus({
-                code: SpanStatusCode.ERROR,
-                message: error instanceof Error ? error.message : 'Unknown error'
-            });
-            span.recordException(error as Error);
-            throw error;
-        } finally {
-            span.end();
-        }
-    });
+    return fetchSpec(item, version);
 }
 
 function fetchSpec(item: string, version: string): K8sDefinitions {
