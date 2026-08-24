@@ -38,6 +38,7 @@ import rancher28 from "../oaspec/rancher/2.8.json";
 import spaceliftoperator010 from "../oaspec/spaceliftoperator/0.1.0.json";
 
 import spaceliftworkerpool0021 from "../oaspec/spaceliftworkerpool/0.0.21.json";
+import spaceliftworkerpool0041 from "../oaspec/spaceliftworkerpool/0.0.41.json";
 
 export function oaspecFetch(item: string, version: string): K8sDefinitions {
     return fetchSpec(item, version);
@@ -154,6 +155,9 @@ function fetchSpec(item: string, version: string): K8sDefinitions {
         if(version === "0.0.21") {
             return spaceliftworkerpool0021.definitions;
         }
+        if(version === "0.0.41") {
+            return spaceliftworkerpool0041.definitions;
+        }
     }
 
     throw new Error("Open Api Spec Not Found");
@@ -172,7 +176,7 @@ export function availableItemVersions(): { [key: string]: Array<string> } {
         "prometheus operator": ["0.71.2"],
         "rancher": ["2.8"],
         "spacelift operator": ["0.1.0"],
-        "spacelift workerpool": ["0.0.21"]
+        "spacelift workerpool": ["0.0.21", "0.0.41"]
     }
 }
 
