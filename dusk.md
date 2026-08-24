@@ -29,4 +29,6 @@ Routing is `/[item]/[version]/[resource]`, rendered through `getServerSideProps`
 
 **Deployment is Cloudflare Workers, and most of the deployment files still in the tree are dead.** `yarn build:cf` runs OpenNext to produce `.open-next/worker.js`, which is what `wrangler.jsonc` publishes. The `Dockerfile`, `deployment.yaml`, `netlify.toml`, and `output: "standalone"` in `next.config.js` are all leftovers from earlier hosting, and nothing reads them any more. The commit that removed the build pipelines said as much.
 
+**Never deploy by hand: pushing to main deploys.** Cloudflare's Workers Builds git integration builds and deploys on every push to main, which is why there is no deploy workflow under `.github/workflows/` (only CodeQL) and why "build pipelines removed" does not mean manual deploys. A session read it that way and tried `npx wrangler deploy` locally; the push had already triggered the real deploy.
+
 **The README's OpenTelemetry section is stale.** Tracing was replaced by PostHog and `instrumentation.ts` is a PostHog client now, but the OTel dependencies in `package.json` and the whole README section about Jaeger and `OTEL_EXPORTER_OTLP_ENDPOINT` were left behind.
