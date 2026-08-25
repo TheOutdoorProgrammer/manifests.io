@@ -33,6 +33,7 @@
     "typescript": "5.6.3"
   },
   "devDependencies": {
+    "@grafana/faro-webpack-plugin": "0.12.1",
     "wrangler": "^4.65.0"
   }
 }

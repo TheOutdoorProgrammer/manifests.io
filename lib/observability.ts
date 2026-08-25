@@ -12,6 +12,7 @@ export function initializeObservability() {
             name: 'Manifests.io',
             version: '0.1.0',
             environment: 'production',
+            gitHash: process.env.NEXT_PUBLIC_GIT_HASH,
         },
         instrumentations: [
             ...getWebInstrumentations(),
