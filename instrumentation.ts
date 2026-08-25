@@ -51,28 +51,3 @@ export async function onRequestError(
   });
   await posthog.flush();
 }
-
-export async function register() {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { BatchLogRecordProcessor } = await import('@opentelemetry/sdk-logs');
-    const { OTLPLogExporter } = await import('@opentelemetry/exporter-logs-otlp-http');
-    const { LoggerProvider } = await import('@opentelemetry/sdk-logs');
-    const { resourceFromAttributes } = await import('@opentelemetry/resources');
-
-    const resource = resourceFromAttributes({
-      'service.name': 'manifestsio',
-    });
-
-    const logExporter = new OTLPLogExporter({
-      url: 'https://g.theoutdoorprogrammer.com/i/v1/logs',
-      headers: {
-        Authorization: 'Bearer phc_aur20epnEcOsmKpTpdbPMjJSzM5ypEtSD4zLwm0Q0aD',
-      },
-    });
-
-    const loggerProvider = new LoggerProvider({
-      resource,
-      processors: [new BatchLogRecordProcessor(logExporter)],
-    });
-  }
-}

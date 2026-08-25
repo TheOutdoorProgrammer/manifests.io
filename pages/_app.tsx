@@ -6,6 +6,9 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function App({Component, pageProps}: AppProps) {
     useEffect(() => {
+        void import('@/lib/observability').then(({initializeObservability}) => {
+            initializeObservability()
+        })
         posthog.init('phc_aur20epnEcOsmKpTpdbPMjJSzM5ypEtSD4zLwm0Q0aD', {
             api_host: 'https://g.theoutdoorprogrammer.com',
             capture_pageview: true,

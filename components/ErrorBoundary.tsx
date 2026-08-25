@@ -21,6 +21,9 @@ class ErrorBoundary extends Component<Props, State> {
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error("Uncaught error:", error, errorInfo);
+        void import('@/lib/observability').then(({captureError}) => {
+            captureError(error);
+        });
         posthog.captureException(error);
     }
 
