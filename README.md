@@ -126,6 +126,8 @@ Dependabot checks the Go module, `frontend/` npm dependencies, GitHub Actions, D
 
 Each release has a root manifest and one finite routing graph per product/version. The Worker resolves named resources, legacy aliases, JSON pointers, and union selectors against these graphs, then fetches the corresponding complete HTML or JSON object. It never renders documentation or loads the source corpus. Traversal context remains client-side.
 
+Only completed metadata values are shared between Worker requests. Metadata loading allows one active read and up to 64 waiting requests, with a single 15-second deadline covering admission and origin I/O. Each waiter uses its own request timer and rechecks the cache, because resolving promises across request contexts can leave workerd requests hung after a disconnect. `waitUntil` keeps each metadata task's cleanup alive when its client leaves. Each read caps decompressed input at 16 MiB; the cache retains at most 16 MiB of serialized metadata and 1,024 entries. Overload and timeouts return uncached HTTP 503 responses.
+
 Objects are named by their stored-byte SHA-256 and compressed at build time. Unchanged objects can be reused across releases. Unknown URLs use shared static error objects, preventing random scanner paths from creating distinct origin resources. The [OpenTofu module](infra/README.md) owns the GCS bucket and public object-read permission without bucket listing. The existing Go server and Dockerfile remain available for development and independent previews.
 
 ### Production releases through Spacelift

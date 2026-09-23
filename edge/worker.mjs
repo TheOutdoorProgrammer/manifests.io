@@ -87,9 +87,8 @@ export function selectNode(document, route) {
 export function createWorker(originFetch = (...args) => fetch(...args), now = Date.now) {
   const metadata = new Map();
   let metadataBytes = 0;
-  const pending = new Map();
   let activeReads = 0;
-  const readers = [];
+  let waitingReaders = 0;
 
   async function readJSON(response) {
     const reader = response.body.getReader();
@@ -119,10 +118,10 @@ export function createWorker(originFetch = (...args) => fetch(...args), now = Da
     return `https://storage.googleapis.com/${bucket}/${object}`;
   }
 
-  async function fetchObject(bucket, object, ttl = 31536000) {
+  async function fetchObject(bucket, object, ttl = 31536000, signal = AbortSignal.timeout(15000)) {
     return originFetch(objectURL(bucket, object), {
       redirect: 'manual',
-      signal: AbortSignal.timeout(15000),
+      signal,
       cf: { cacheEverything: true, cacheTtlByStatus: { '200-299': ttl, '404': 60, '300-403': -1, '405-599': -1 } },
     }).catch(error => {
       const kind = ['TypeError', 'RangeError', 'TimeoutError', 'AbortError'].includes(error?.name) ? error.name : 'Error';
@@ -130,48 +129,63 @@ export function createWorker(originFetch = (...args) => fetch(...args), now = Da
     });
   }
 
-  async function json(bucket, object, ttl = 31536000) {
-    const key = objectURL(bucket, object);
+  function cachedMetadata(key) {
     const cached = metadata.get(key);
     if (cached?.expires > now()) {
       metadata.delete(key);
       metadata.set(key, cached);
-      return cached.value;
+      return cached;
     }
-    if (pending.has(key)) return pending.get(key);
-    const read = (async () => {
-      // Keep one decoded shard in flight alongside the retained graph cache.
-      if (activeReads >= 1) {
-        if (readers.length >= 64) throw new Error('Static metadata queue full');
-        await new Promise(resolve => readers.push(resolve));
-      } else {
-        activeReads++;
-      }
+  }
+
+  function json(bucket, object, ctx, ttl = 31536000) {
+    const read = readMetadata(bucket, object, ttl);
+    // Keep admission and cleanup alive after disconnects, within waitUntil's 30s limit.
+    ctx?.waitUntil(read.catch(() => {}));
+    return read;
+  }
+
+  async function readMetadata(bucket, object, ttl) {
+    const key = objectURL(bucket, object);
+    const cached = cachedMetadata(key);
+    if (cached) return cached.value;
+    const signal = AbortSignal.timeout(15000);
+    if (activeReads >= 1) {
+      if (waitingReaders >= 64) throw new OriginError('metadata_capacity');
+      waitingReaders++;
       try {
-        const response = await fetchObject(bucket, object, ttl);
-        const missingRelease = response.status === 404 && object.startsWith('releases/');
-        if (!response.ok && !missingRelease) throw new OriginError('metadata', response.status);
-        const { value, size } = missingRelease ? { value: null, size: 4 } : await readJSON(response);
-        if (missingRelease) await response.body?.cancel();
-        const previous = metadata.get(key);
-        if (previous) { metadata.delete(key); metadataBytes -= previous.size; }
-        // Bound parsed graph retention within the Worker memory limit.
-        while ((metadataBytes + size > 16 * 1024 * 1024 || metadata.size >= 1024) && metadata.size) {
-          const oldest = metadata.keys().next().value;
-          metadataBytes -= metadata.get(oldest).size;
-          metadata.delete(oldest);
+        while (activeReads >= 1) {
+          // Only this request may resolve its wait; cross-request promises can hang workerd.
+          await new Promise(resolve => setTimeout(resolve, 10));
+          if (signal.aborted) throw new OriginError('metadata_wait_timeout');
+          const completed = cachedMetadata(key);
+          if (completed) return completed.value;
         }
-        metadata.set(key, { value, size, expires: now() + (missingRelease ? 60 : ttl) * 1000 });
-        metadataBytes += size;
-        return value;
       } finally {
-        const next = readers.shift();
-        if (next) next();
-        else activeReads--;
+        waitingReaders--;
       }
-    })();
-    pending.set(key, read);
-    try { return await read; } finally { pending.delete(key); }
+    }
+    activeReads++;
+    try {
+      const response = await fetchObject(bucket, object, ttl, signal);
+      const missingRelease = response.status === 404 && object.startsWith('releases/');
+      if (!response.ok && !missingRelease) throw new OriginError('metadata', response.status);
+      const { value, size } = missingRelease ? { value: null, size: 4 } : await readJSON(response);
+      if (missingRelease) await response.body?.cancel();
+      const previous = metadata.get(key);
+      if (previous) { metadata.delete(key); metadataBytes -= previous.size; }
+      // Bound parsed graph retention within the Worker memory limit.
+      while ((metadataBytes + size > 16 * 1024 * 1024 || metadata.size >= 1024) && metadata.size) {
+        const oldest = metadata.keys().next().value;
+        metadataBytes -= metadata.get(oldest).size;
+        metadata.delete(oldest);
+      }
+      metadata.set(key, { value, size, expires: now() + (missingRelease ? 60 : ttl) * 1000 });
+      metadataBytes += size;
+      return value;
+    } finally {
+      activeReads--;
+    }
   }
 
   function reply(request, body, status, headers = {}) {
@@ -204,7 +218,7 @@ export function createWorker(originFetch = (...args) => fetch(...args), now = Da
   }
 
   return {
-    async fetch(request, env) {
+    async fetch(request, env, ctx) {
       if (!['GET', 'HEAD'].includes(request.method)) {
         return reply(request, 'Method not allowed', 405, { Allow: 'GET, HEAD' });
       }
@@ -227,16 +241,16 @@ export function createWorker(originFetch = (...args) => fetch(...args), now = Da
         const bucket = env.STORAGE_BUCKET;
         if (releaseAsset) {
           const [, release, asset] = releaseAsset;
-          const manifest = await json(bucket, `releases/${release}.json`);
+          const manifest = await json(bucket, `releases/${release}.json`, ctx);
           if (!manifest) return reply(request, 'Not found', 404, { 'Cache-Control': 'public, max-age=0, s-maxage=60, must-revalidate' });
           if (manifest.format !== 1 || manifest.release !== release) throw new Error('Static release manifest mismatch');
           const ref = own(manifest.files, asset);
           if (!ref || asset.endsWith('.map')) return reply(request, 'Not found', 404, { 'Cache-Control': publicCache });
           return await serve(request, bucket, ref, release, 200, true);
         }
-        const pointer = await json(bucket, 'current.json', 60);
+        const pointer = await json(bucket, 'current.json', ctx, 60);
         if (pointer.format !== 1 || !/^[a-f0-9]{40}$/.test(pointer.release)) throw new Error('Invalid release pointer');
-        const manifest = await json(bucket, pointer.manifest);
+        const manifest = await json(bucket, pointer.manifest, ctx);
         if (manifest.format !== 1 || manifest.release !== pointer.release) throw new Error('Static release manifest mismatch');
         const send = (ref, status = 200, immutable = false) => serve(request, bucket, ref, pointer.release, status, immutable);
         let errors = manifest.errors;
@@ -251,7 +265,7 @@ export function createWorker(originFetch = (...args) => fetch(...args), now = Da
           if (!route.item) throw new RouteError(404);
           const documentRef = own(manifest.documents, `${route.item}/${route.version}`);
           if (!documentRef) throw new RouteError(404);
-          const document = await json(bucket, documentRef.object);
+          const document = await json(bucket, documentRef.object, ctx);
           errors = document.errors || errors;
           if (route.pathname === '/api/definitions') return await send(document.definitions);
           const node = selectNode(document, route);
