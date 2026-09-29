@@ -1,0 +1,123 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  name: oidcclients.management.cattle.io
+spec:
+  group: management.cattle.io
+  names:
+    kind: OIDCClient
+    listKind: OIDCClientList
+    plural: oidcclients
+    singular: oidcclient
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.clientID
+      name: Client ID
+      type: string
+    - jsonPath: .spec.tokenExpirationSeconds
+      name: Token Expiration
+      type: integer
+    - jsonPath: .spec.refreshTokenExpirationSeconds
+      name: RefreshToken Expiration
+      type: integer
+    name: v3
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec is the specification of the desired configuration for
+              the oidc client.
+            properties:
+              description:
+                description: Description provides additional context about the OIDC
+                  client.
+                type: string
+              redirectURIs:
+                description: |-
+                  RedirectURIs defines the allowed redirect URIs for the OIDC client.
+                  These URIs must be registered and used during the authentication flow.
+                items:
+                  type: string
+                type: array
+              refreshTokenExpirationSeconds:
+                default: 86400
+                description: |-
+                  RefreshTokenExpirationSeconds defines how long (in seconds)
+                  a refresh token remains valid before expiration.
+                format: int64
+                minimum: 1
+                type: integer
+              scopes:
+                description: |-
+                  Scopes is the list of scopes allowed for this client.
+
+                  If configured, the client will only be able to request these scopes.
+                items:
+                  type: string
+                type: array
+              tokenExpirationSeconds:
+                default: 3600
+                description: |-
+                  TokenExpirationSeconds specifies the duration (in seconds) before
+                  an access token and ID token expire.
+                format: int64
+                minimum: 1
+                type: integer
+            required:
+            - refreshTokenExpirationSeconds
+            - tokenExpirationSeconds
+            type: object
+          status:
+            description: Status is the most recently observed status of the oidc client.
+            properties:
+              clientID:
+                description: ClientID represents the ID of the client
+                type: string
+              clientSecrets:
+                additionalProperties:
+                  description: OIDCClientSecretStatus represent the observed status
+                    of a client secret.
+                  properties:
+                    createdAt:
+                      description: CreatedAt represents when this client secret was
+                        created.
+                      type: string
+                    lastFiveCharacters:
+                      description: LastFiveCharacters are the 5 last characters of
+                        the client secret
+                      type: string
+                    lastUsedAt:
+                      description: LastUsedAt represent when this client secret was
+                        used.
+                      type: string
+                  type: object
+                description: ClientSecrets represents the observed status of the client
+                  secrets
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
