@@ -40,7 +40,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "esbuild": "0.28.2",
     "jsdom": "^30.1.0",
-    "miniflare": "5.20260911.0-alpha",
+    "miniflare": "5.20261001.0-alpha",
     "typescript": "^7.0.2",
     "url-search-params-polyfill": "8.2.5",
     "vite": "^8.3.0",
