@@ -1,0 +1,155 @@
+{
+  "product": "rancher",
+  "version": "2.15.2",
+  "repository": "rancher/rancher",
+  "tag": "v2.15.2",
+  "commit": "272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8",
+  "files": [
+    {
+      "path": "pkg__crds__yaml__fleet__fleet.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/fleet/fleet.yaml",
+      "sha256": "5865c8b908b23fff40cb14943050c732e33f27dfce32521ff19670b26ee28587"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__auditlog.cattle.io_auditpolicies.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/auditlog.cattle.io_auditpolicies.yaml",
+      "sha256": "5e1cdf24fc338a3108b215b48b249cc13f84147c3f54f55f04d14fff995798f5"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__catalog.cattle.io_clusterrepos.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/catalog.cattle.io_clusterrepos.yaml",
+      "sha256": "dc9c11a28e9c7faec261b2be2a568b9110f2e1be6a918fea919c4396c74c81bb"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__catalog.cattle.io_uiplugins.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/catalog.cattle.io_uiplugins.yaml",
+      "sha256": "de4950ad8ac15678b95c6af9a089d7efa01225f06db382488e163812608103b2"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_clusterproxyconfigs.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_clusterproxyconfigs.yaml",
+      "sha256": "1b93da4ecf19980580e538d5bc1108570b617d8699a7a11284bde08079c838dd"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_clusterroletemplatebindings.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_clusterroletemplatebindings.yaml",
+      "sha256": "52e59062ea3bf7b3382bf52c57c48696c4018a80f101c8f9a40a162c72f7867c"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_dynamicschemas.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_dynamicschemas.yaml",
+      "sha256": "85acc93b8901587dba08e780d01d46e996a6e6a8ef1c68a157cee22e979f8db9"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_globalrolebindings.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_globalrolebindings.yaml",
+      "sha256": "3e61609def293ac433ed802cf4f6b7d6ca35ceeade4b83ff0117928a18877373"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_globalroles.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_globalroles.yaml",
+      "sha256": "57455432de3cb6a3cd1a0fc24623cc2013f2fb20a712ba1020dbd000ad0f1986"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_nodedrivers.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_nodedrivers.yaml",
+      "sha256": "4d18fe2d75ed9953fcc4389ee7c84d45a10f9a0d3ac3703431dba4973b20db4a"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_oidcclients.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_oidcclients.yaml",
+      "sha256": "26fc46893f1df4afb7170647d13270e6a7862a062a38c6e633662c23293478b8"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_projectroletemplatebindings.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_projectroletemplatebindings.yaml",
+      "sha256": "1d230a0ccbfe57fb28851e909a2197a35c6991250685cd08ee66533628f8873b"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_projects.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_projects.yaml",
+      "sha256": "eea7907c1466ed0ebface94e618124ed4abb0932a4a11d24cf3f08291a44fe16"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_proxyendpoints.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_proxyendpoints.yaml",
+      "sha256": "49be682fe9c31f88206a336ee9cae341e7236b107e8a6400438e45eeb1c01639"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_roletemplates.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_roletemplates.yaml",
+      "sha256": "4479e81d3899027a60bb8978eb8abebb044425b1aa93912c08c0d49449b2aab8"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__management.cattle.io_users.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/management.cattle.io_users.yaml",
+      "sha256": "a2c532c4b2d533a91527cceedc082590f786250c8e74da873dec53dfde2f0127"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__operation.cattle.io_encryptionkeyrotations.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/operation.cattle.io_encryptionkeyrotations.yaml",
+      "sha256": "207a9f06474bb608b12497816719e331e1fc84d65f89a9c9d162ab15e37a1120"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__operation.cattle.io_etcdsnapshotrestores.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/operation.cattle.io_etcdsnapshotrestores.yaml",
+      "sha256": "2b76d18f86595d48be1a0e8d71ef28166a60393cbb70bb7315ac8af66050bfc0"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__operation.cattle.io_etcdsnapshotsaves.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/operation.cattle.io_etcdsnapshotsaves.yaml",
+      "sha256": "0780a77af60d016b20066648ce216a74730e2bccfc436d52d8e036a85f6db817"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__plan.cattle.io_beacons.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/plan.cattle.io_beacons.yaml",
+      "sha256": "f03eac415d7eda3b7e69ae4136775799fd6017a4a20d85c6914d6e873cd4d2ce"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__provisioning.cattle.io_clusters.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/provisioning.cattle.io_clusters.yaml",
+      "sha256": "54ff483510f41550ebb438c817035d6bbd162e1df2e17b23d5cddad35e380c11"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__rke.cattle.io_custommachines.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/rke.cattle.io_custommachines.yaml",
+      "sha256": "04848d404ebd54a12585b40edb0803f8d6504d0d702ec7b1c023d106cc8f4f94"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__rke.cattle.io_etcdsnapshots.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/rke.cattle.io_etcdsnapshots.yaml",
+      "sha256": "18e023e3709e7a23f8174a88deb45226d9e3bb96bb1aac39e7d277a43a39c869"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__rke.cattle.io_rkebootstraps.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/rke.cattle.io_rkebootstraps.yaml",
+      "sha256": "4bcb92368bc27ea5ab398ec255edf32e5cd7e31116f0cec4ea29063d33da11e1"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__rke.cattle.io_rkebootstraptemplates.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/rke.cattle.io_rkebootstraptemplates.yaml",
+      "sha256": "3878b5e4b2097ede0c7d669688aa65d95ad4365ca488c4feaf86062828f2cf24"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__rke.cattle.io_rkeclusters.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/rke.cattle.io_rkeclusters.yaml",
+      "sha256": "4a4ed68d1fecaca57742e5611438e0c1e68288fa662669c26ced47c24666276a"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__rke.cattle.io_rkecontrolplanes.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/rke.cattle.io_rkecontrolplanes.yaml",
+      "sha256": "dff9b06d92196ffc0d1f73daccc5e2dac9277aefa3d9552b5d76e14e475e9f46"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__scc.cattle.io_registrations.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/scc.cattle.io_registrations.yaml",
+      "sha256": "3903c928bb11bbcc3dfd24cbdd2c8319a6de571b639b5e568c1e674d47d38180"
+    },
+    {
+      "path": "pkg__crds__yaml__generated__telemetry.cattle.io_secretrequests.yaml",
+      "url": "https://raw.githubusercontent.com/rancher/rancher/272e65580ca92b9dc51e0f0f0f9ae9d6d356e3b8/pkg/crds/yaml/generated/telemetry.cattle.io_secretrequests.yaml",
+      "sha256": "6c491739229b48494d96e49ec4a27d5412653b2b189e04bdc9262a88bb28c6ff"
+    }
+  ],
+  "target": "ETL/crds/rancher-2.15.2"
+}

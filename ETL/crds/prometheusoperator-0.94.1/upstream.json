@@ -1,0 +1,60 @@
+{
+  "product": "prometheusoperator",
+  "version": "0.94.1",
+  "repository": "prometheus-operator/prometheus-operator",
+  "tag": "v0.94.1",
+  "commit": "24929ab3b4c91b39d43d5f020833296654c627fd",
+  "files": [
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_alertmanagerconfigs.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml",
+      "sha256": "f3ae40001f979ef4d922a25610b8e72ae74b11453329641c0d2a7b712879c504"
+    },
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_alertmanagers.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml",
+      "sha256": "3134036ea60b59ee10e46c60075cf08facbb89bdc8a7bc8f02bbe7d7c14378a1"
+    },
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_podmonitors.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml",
+      "sha256": "62a3dd743ae8ea13f6817be3e8ab74e97e22fd59effc0704e1524dff8869fb43"
+    },
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_probes.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml",
+      "sha256": "72119f8f15f16824e2d22cf19777dee00582316ef050e37ebc5ff8dcd25436c5"
+    },
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_prometheusagents.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_prometheusagents.yaml",
+      "sha256": "76012a64894618cb5d86824eab029dab093330e7ca857e2680aba00e5dad150e"
+    },
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_prometheuses.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml",
+      "sha256": "0aadc58268beb77ac067d57dddde8592a5f35a6c7d262935c1a6b03d8ef67de5"
+    },
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_prometheusrules.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml",
+      "sha256": "8e29b30e9353d593821ba4e61dc189ed7b3c4cf50a665e95d8c3d3aad3c4d484"
+    },
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_scrapeconfigs.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_scrapeconfigs.yaml",
+      "sha256": "ae3b2cd12228bc260a92f3709cb6c2beb45efd97c1efb0903ab64aa861c20a09"
+    },
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_servicemonitors.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml",
+      "sha256": "31bdff398b54ac2bc993a33f5dcb0472792a77104a6a609d264c8f1f17829769"
+    },
+    {
+      "path": "example__prometheus-operator-crd__monitoring.coreos.com_thanosrulers.yaml",
+      "url": "https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/24929ab3b4c91b39d43d5f020833296654c627fd/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml",
+      "sha256": "744e49eff3891df960c1cb4eab2aec32d48e8a8f441447921cf9e7463130744b"
+    }
+  ],
+  "target": "ETL/crds/prometheusoperator-0.94.1"
+}
