@@ -1,0 +1,14 @@
+{
+  "product": "flux",
+  "version": "2.9.6",
+  "repository": "fluxcd/flux2",
+  "tag": "v2.9.6",
+  "files": [
+    {
+      "path": "install.yaml",
+      "url": "https://github.com/fluxcd/flux2/releases/download/v2.9.6/install.yaml",
+      "sha256": "9c1fda7e401429531ed1478f67ba06b3edff6513b75da7ee47bde9f1c4d4251c"
+    }
+  ],
+  "target": "ETL/crds/flux-2.9.6"
+}
