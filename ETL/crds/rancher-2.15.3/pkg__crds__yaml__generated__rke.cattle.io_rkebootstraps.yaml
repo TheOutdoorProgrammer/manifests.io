@@ -1,0 +1,117 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.1
+  labels:
+    auth.cattle.io/cluster-indexed: "true"
+    cluster.x-k8s.io/v1beta1: v1
+    cluster.x-k8s.io/v1beta2: v1
+  name: rkebootstraps.rke.cattle.io
+spec:
+  group: rke.cattle.io
+  names:
+    categories:
+    - cluster-api
+    kind: RKEBootstrap
+    listKind: RKEBootstrapList
+    plural: rkebootstraps
+    singular: rkebootstrap
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          RKEBootstrap defines the BootstrapConfig resource required by Cluster API
+          to supply the bootstrap data necessary for initializing a Kubernetes node.
+          It is referenced by one of the core Cluster API resources, Machine.
+          More info: https://cluster-api.sigs.k8s.io/developer/providers/contracts/bootstrap-config
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec is the desired state of RKEBootstrap.
+            properties:
+              clusterName:
+                description: ClusterName refers to the name of the CAPI Cluster associated
+                  with this RKEBootstrap.
+                type: string
+              userdata:
+                description: |-
+                  Additional that will be merged with rancher-defined userdata.
+
+                  Currently, this field is only supported for external CAPI
+                  infrastructure providers, and will have no effect for
+                  Rancher-provisioned nodes. Userdata for Rancher-provisioned nodes
+                  can be set in the machine configuration.
+
+                  WARNING: Do not include sensitive data, this field is visible
+                  in non-Secret API objects.
+
+                  EXPERIMENTAL: this field is experimental and future compatibility
+                  is not guaranteed.
+                nullable: true
+                properties:
+                  inlineUserdata:
+                    description: |-
+                      Userdata string in cloud-config format.
+
+                      WARNING: Do not include sensitive data, this field is visible
+                      in non-Secret API objects.
+
+                      EXPERIMENTAL: this field is experimental and future compatibility
+                      is not guaranteed.
+                    type: string
+                type: object
+            type: object
+          status:
+            description: Status is the observed state of RKEBootstrap.
+            properties:
+              dataSecretName:
+                description: DataSecretName is the name of the secret that stores
+                  the bootstrap data script.
+                maxLength: 253
+                minLength: 1
+                type: string
+              initialization:
+                description: |-
+                  Initialization provides observations of the RKEBootstrap initialization process.
+                  NOTE: Fields in this struct are part of the Cluster API contract and are used to orchestrate initial Machine provisioning.
+                minProperties: 1
+                properties:
+                  dataSecretCreated:
+                    description: |-
+                      DataSecretCreated is true when the Machine's boostrap secret is created.
+                      NOTE: this field is part of the Cluster API contract, and it is used to orchestrate initial Machine provisioning.
+                    type: boolean
+                type: object
+              ready:
+                description: |-
+                  Ready indicates the BootstrapData field is ready to be consumed.
+                  Deprecated: use Initialization.DataSecretCreated instead.
+                type: boolean
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
