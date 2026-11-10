@@ -1,0 +1,20 @@
+{
+  "product": "spaceliftworkerpool",
+  "version": "0.0.52",
+  "repository": "spacelift-io/spacelift-helm-charts",
+  "tag": "v0.87.0",
+  "commit": "73cb220cab1cbdfa0e1c3d565a6f471b38a74dc3",
+  "files": [
+    {
+      "path": "spacelift-workerpool-controller__config__crd__bases__workers.spacelift.io_workerpools.yaml",
+      "url": "https://raw.githubusercontent.com/spacelift-io/spacelift-helm-charts/73cb220cab1cbdfa0e1c3d565a6f471b38a74dc3/spacelift-workerpool-controller/config/crd/bases/workers.spacelift.io_workerpools.yaml",
+      "sha256": "31a5ccc99c3dc7e32aebd1b3a44d0475c3a2b31137b84f991336849cc5e21508"
+    },
+    {
+      "path": "spacelift-workerpool-controller__config__crd__bases__workers.spacelift.io_workers.yaml",
+      "url": "https://raw.githubusercontent.com/spacelift-io/spacelift-helm-charts/73cb220cab1cbdfa0e1c3d565a6f471b38a74dc3/spacelift-workerpool-controller/config/crd/bases/workers.spacelift.io_workers.yaml",
+      "sha256": "f470618d217682d2250b420a2038e7ea357064cdcce512dc0dc3ff85542c43d3"
+    }
+  ],
+  "target": "ETL/crds/spaceliftworkerpool-0.0.52"
+}
