@@ -108,6 +108,15 @@ describe('browser telemetry', () => {
     expect(initializeObservability()).toBeUndefined()
   })
 
+  it('keeps analytics delivery out of service traces without ignoring the app API', () => {
+    const ignored = telemetryConfig('https://collector.example.test').ignoreUrls ?? []
+    const matches = (url: string) => ignored.some((pattern) => url.match(pattern) != null)
+    expect(matches('https://g.theoutdoorprogrammer.com/i/v0/e/?compression=gzip-js')).toBe(true)
+    expect(matches('https://g.theoutdoorprogrammer.com/e/')).toBe(true)
+    expect(matches(`${location.origin}/api/page`)).toBe(false)
+    expect(matches('https://collector.example.test/collect')).toBe(false)
+  })
+
   it('never exports a localhost production preview to the live collector', () => {
     vi.stubEnv('PROD', true)
     vi.stubEnv('VITE_FARO_URL', '')

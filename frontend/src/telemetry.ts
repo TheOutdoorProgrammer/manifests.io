@@ -209,11 +209,16 @@ export function sanitizeTelemetry(item: TransportItem): TransportItem | null {
   }
 }
 
+const analyticsHost = 'https://g.theoutdoorprogrammer.com'
+// Analytics delivery is best-effort. A rejected call must not become a service error span.
+const analyticsRequests = new RegExp(`^${analyticsHost.replaceAll('.', '\\.')}(?::\\d+)?(?:/|$)`)
+
 export function telemetryConfig(url: string, version = 'development'): BrowserConfig {
   return {
     url,
     app: { name: 'Manifests.io', version, environment: import.meta.env.MODE },
     beforeSend: sanitizeTelemetry,
+    ignoreUrls: [analyticsRequests],
     sessionTracking: { persistent: false },
     instrumentations: [
       ...getWebInstrumentations({ captureConsole: false }),
@@ -250,7 +255,6 @@ export function captureSearchEvent(event: SearchEvent) {
   faro?.api.pushEvent(event)
 }
 
-const analyticsHost = 'https://g.theoutdoorprogrammer.com'
 const analyticsToken = 'phc_aur20epnEcOsmKpTpdbPMjJSzM5ypEtSD4zLwm0Q0aD'
 let analyticsStarted = false
 
