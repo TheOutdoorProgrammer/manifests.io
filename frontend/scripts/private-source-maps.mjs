@@ -198,10 +198,16 @@ export async function verifyServerBundles(directory, manifest) {
     throw new Error('Runnable assets contain private maps or symlinks');
   }
   const expected = new Set(Object.values(manifest.assets).map(asset => asset.bundle_file));
+  expected.add('context-guard.js');
   const bundles = entries.filter(entry => entry.isFile() && entry.name.endsWith('.js'))
     .map(entry => relative(root, join(entry.parentPath, entry.name)));
   if (bundles.length !== expected.size || bundles.some(bundle => !expected.has(bundle))) {
     throw new Error('Runnable browser bundle set mismatch');
+  }
+  // This first-party script is served as authored, outside Vite's mapped bundles.
+  const guardSource = fileURLToPath(new URL('../../public/context-guard.js', import.meta.url));
+  if (sha256(await readBounded(join(root, 'context-guard.js'))) !== sha256(await readBounded(guardSource))) {
+    throw new Error('Runnable context guard differs from source');
   }
   for (const asset of Object.values(manifest.assets)) {
     const filename = join(root, asset.bundle_file);

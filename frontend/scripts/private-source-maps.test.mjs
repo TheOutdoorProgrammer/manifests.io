@@ -48,10 +48,18 @@ test('preview profile binds app, release, public path and exact runnable bundle 
   await assert.rejects(packPrivateMaps(source, join(root, 'invalid'), release, 'arbitrary'), /profile/);
   const server = join(root, 'server');
   await mkdir(join(server, 'assets'), { recursive: true });
+  await writeFile(join(server, 'context-guard.js'), await readFile(new URL('../../public/context-guard.js', import.meta.url)));
   const identity = { app: manifest.app, release, profile: 'preview-server' };
   await writeFile(join(server, 'build-identity.json'), JSON.stringify(identity));
   await writeFile(join(server, 'assets/index-123.js'), await readFile(join(source, 'index-123.js')));
   await verifyServerBundles(server, manifest);
+  await writeFile(join(server, 'unexpected.js'), 'unexpected');
+  await assert.rejects(verifyServerBundles(server, manifest), /bundle set/);
+  await rm(join(server, 'unexpected.js'));
+  const guard = await readFile(join(server, 'context-guard.js'));
+  await writeFile(join(server, 'context-guard.js'), 'different');
+  await assert.rejects(verifyServerBundles(server, manifest), /context guard/);
+  await writeFile(join(server, 'context-guard.js'), guard);
   await writeFile(join(server, 'assets/index-123.js.map'), '{}');
   await assert.rejects(verifyServerBundles(server, manifest), /private maps/);
   await rm(join(server, 'assets/index-123.js.map'));

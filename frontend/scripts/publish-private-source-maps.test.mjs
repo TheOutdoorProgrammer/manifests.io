@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
@@ -83,6 +83,7 @@ test('preview publication uses only its immutable app prefix and matching receip
   const server = join(root, 'server');
   await mkdir(source);
   await mkdir(join(server, 'assets'), { recursive: true });
+  await writeFile(join(server, 'context-guard.js'), await readFile(new URL('../../public/context-guard.js', import.meta.url)));
   await writeFile(join(source, 'app.js'), 'throw Error();');
   await writeFile(join(source, 'app.js.map'), JSON.stringify({ version: 3, sources: ['src/app.ts'], names: [], mappings: 'AAAA' }));
   await writeFile(join(server, 'assets/app.js'), 'throw Error();');
