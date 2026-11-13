@@ -12,6 +12,9 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -26,6 +29,8 @@ jobs:
       - run: make static VERSION="$GITHUB_SHA" VITE_APP_VERSION="$GITHUB_SHA"
       - run: make test
       - run: npm --prefix frontend run test:edge
+      - name: Verify private artifact integrity tooling
+        run: node --test frontend/scripts/private-source-maps.test.mjs frontend/scripts/publish-private-source-maps.test.mjs frontend/scripts/verify-builder-artifact-iam.test.mjs
       - run: go vet ./...
       - name: Install Chromium
         working-directory: frontend
@@ -60,6 +65,27 @@ jobs:
         env:
           FARO_SOURCEMAP_API_KEY: ${{ secrets.FARO_SOURCEMAP_API_KEY }}
         run: node frontend/scripts/upload-source-maps.mjs frontend/dist/assets
+      - name: Authenticate private artifact publisher
+        id: artifact-auth
+        if: github.repository == 'TheOutdoorProgrammer/manifests.io' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          project_id: nwf-shared
+          workload_identity_provider: projects/155511170166/locations/global/workloadIdentityPools/github/providers/github
+          service_account: manifests-builder@nwf-shared.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: false
+      - name: Publish and admit private browser artifacts
+        if: github.repository == 'TheOutdoorProgrammer/manifests.io' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          ACCESS_TOKEN: ${{ steps.artifact-auth.outputs.access_token }}
+        run: |
+          node frontend/scripts/private-source-maps.mjs pack \
+            frontend/dist/assets "$RUNNER_TEMP/private-browser-artifacts" "$GITHUB_SHA"
+          node frontend/scripts/publish-private-source-maps.mjs "$RUNNER_TEMP/private-browser-artifacts" build/static
+      - name: Remove staged private artifacts
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/private-browser-artifacts"
       - name: Remove private browser source maps
         if: always()
         run: rm -f frontend/dist/assets/*.js.map
