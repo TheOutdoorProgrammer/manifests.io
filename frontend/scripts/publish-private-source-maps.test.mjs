@@ -68,4 +68,10 @@ test('publication waits for independently verified receipt and uploads manifest 
   await writeFile(join(staticDirectory, 'manifest.json'), JSON.stringify(publicManifest));
   await writeFile(join(staticDirectory, object), gzipSync('different public bundle'));
   await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /integrity/);
+  const unrelated = gzipSync('valid object from another build');
+  const unrelatedObject = `objects/${createHash('sha256').update(unrelated).digest('hex')}.js`;
+  await writeFile(join(staticDirectory, unrelatedObject), unrelated);
+  publicManifest.files['/assets/app.js'].object = unrelatedObject;
+  await writeFile(join(staticDirectory, 'manifest.json'), JSON.stringify(publicManifest));
+  await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /do not match/);
 });
