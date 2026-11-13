@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { verifyPrivateMaps } from './private-source-maps.mjs';
+import { verifyPrivateMaps, verifyStaticBundles } from './private-source-maps.mjs';
 
 const bucket = 'nwf-shared-browser-artifacts';
 const base = 'https://storage.googleapis.com';
@@ -38,6 +38,7 @@ export async function publishPrivateMaps(directory, release, token, options = {}
   const manifestHash = sha256(manifestBytes);
   const manifest = await verifyPrivateMaps(directory, manifestHash);
   if (manifest.release !== release) throw new Error('Release mismatch');
+  await verifyStaticBundles(options.staticDirectory, manifest);
   const headers = { Authorization: `Bearer ${token}` };
   const receiptName = `receipts/Manifests.io/${release}.json`;
   async function receiptReady() {
@@ -88,7 +89,8 @@ export async function publishPrivateMaps(directory, release, token, options = {}
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const hash = await publishPrivateMaps(process.argv[2], process.env.GITHUB_SHA, process.env.ACCESS_TOKEN);
+    const hash = await publishPrivateMaps(process.argv[2], process.env.GITHUB_SHA, process.env.ACCESS_TOKEN,
+      { staticDirectory: process.argv[3] });
     console.log(JSON.stringify({ manifest_sha256: hash, enrolled: true }));
   } catch {
     console.error('Private browser artifact publication or enrollment failed');

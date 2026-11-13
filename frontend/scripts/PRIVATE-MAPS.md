@@ -30,4 +30,6 @@ The prepared CI runs `publish-private-source-maps.mjs` after packaging and waits
 
 The private manifest includes a generated/original-coordinate probe derived with the existing source-map library. The importer checks it with the gateway's actual decoder and private synthetic ingestion path before issuing the receipt. Neither the probe nor the receipt includes source content.
 
+Before contacting GCS, the publisher reads the existing static export's `manifest.json`, checks its full revision and map exclusion, validates each content-addressed JavaScript object, boundedly decompresses it and compares its decoded SHA256 with the matching private bundle. The actual public artifact bytes must match; sharing a build revision alone is insufficient provenance.
+
 The current Cloud map upload remains required until this path is verified. The recovered production release must stay enrolled while cached clients still use it. Prepared source and passing local tests do not establish that private publishing or automatic enrollment is active.

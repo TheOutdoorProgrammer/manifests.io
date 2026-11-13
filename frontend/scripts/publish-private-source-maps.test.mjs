@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { createHash } from 'node:crypto';
+import { gzipSync } from 'node:zlib';
 import { packPrivateMaps } from './private-source-maps.mjs';
 import { publishPrivateMaps } from './publish-private-source-maps.mjs';
 
@@ -18,6 +20,15 @@ test('publication waits for independently verified receipt and uploads manifest 
   const release = 'a'.repeat(40);
   const output = join(root, 'private');
   const packed = await packPrivateMaps(source, output, release);
+  const staticDirectory = join(root, 'static');
+  await mkdir(join(staticDirectory, 'objects'), { recursive: true });
+  const stored = gzipSync('throw Error();');
+  const object = `objects/${createHash('sha256').update(stored).digest('hex')}.js`;
+  await writeFile(join(staticDirectory, object), stored);
+  const publicManifest = { format: 1, release, files: { '/assets/app.js': {
+    object, contentType: 'text/javascript; charset=utf-8', contentEncoding: 'gzip',
+  } } };
+  await writeFile(join(staticDirectory, 'manifest.json'), JSON.stringify(publicManifest));
   const uploads = [];
   let admitted = false;
   const request = async (url, options) => {
@@ -34,7 +45,7 @@ test('publication waits for independently verified receipt and uploads manifest 
       verified: true, verified_at: new Date().toISOString(),
       gateway_image: `example/gateway@sha256:${'b'.repeat(64)}` });
   };
-  const options = { request, attempts: 1, sleep: async () => {} };
+  const options = { request, attempts: 1, sleep: async () => {}, staticDirectory };
   await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /did not complete/);
   assert.equal(uploads.at(-1), `artifacts/Manifests.io/${release}/manifest.json`);
   assert.equal(uploads.length, 3);
@@ -45,4 +56,16 @@ test('publication waits for independently verified receipt and uploads manifest 
   await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /identity mismatch/);
   options.request = async () => new Response('x'.repeat(4097), { status: 200 });
   await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /too large/);
+  options.request = async () => { throw new Error('must not contact storage'); };
+  publicManifest.release = 'c'.repeat(40);
+  await writeFile(join(staticDirectory, 'manifest.json'), JSON.stringify(publicManifest));
+  await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /identity/);
+  publicManifest.release = release;
+  publicManifest.files['/assets/app.js.map'] = publicManifest.files['/assets/app.js'];
+  await writeFile(join(staticDirectory, 'manifest.json'), JSON.stringify(publicManifest));
+  await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /map exclusion/);
+  delete publicManifest.files['/assets/app.js.map'];
+  await writeFile(join(staticDirectory, 'manifest.json'), JSON.stringify(publicManifest));
+  await writeFile(join(staticDirectory, object), gzipSync('different public bundle'));
+  await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /integrity/);
 });

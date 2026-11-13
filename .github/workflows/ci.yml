@@ -82,7 +82,7 @@ jobs:
         run: |
           node frontend/scripts/private-source-maps.mjs pack \
             frontend/dist/assets "$RUNNER_TEMP/private-browser-artifacts" "$GITHUB_SHA"
-          node frontend/scripts/publish-private-source-maps.mjs "$RUNNER_TEMP/private-browser-artifacts"
+          node frontend/scripts/publish-private-source-maps.mjs "$RUNNER_TEMP/private-browser-artifacts" build/static
       - name: Remove staged private artifacts
         if: always()
         run: rm -rf "$RUNNER_TEMP/private-browser-artifacts"

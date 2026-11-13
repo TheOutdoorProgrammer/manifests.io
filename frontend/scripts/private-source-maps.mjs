@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TraceMap, eachMapping } from '@jridgewell/trace-mapping';
+import { gunzipSync } from 'node:zlib';
 
 const maxFileBytes = 16 * 1024 * 1024;
 const maxTotalBytes = 64 * 1024 * 1024;
@@ -145,6 +146,30 @@ export async function verifyPrivateMaps(directory, expectedManifestHash) {
   }
   if (total !== manifest.total_bytes) throw new Error('Artifact size mismatch');
   return manifest;
+}
+
+export async function verifyStaticBundles(directory, manifest) {
+  const root = await realpath(directory);
+  const published = JSON.parse(await readBounded(join(root, 'manifest.json')));
+  if (published.format !== 1 || published.release !== manifest.release ||
+      !published.files || Object.keys(published.files).some(name => name.endsWith('.map'))) {
+    throw new Error('Public static release identity or map exclusion failed');
+  }
+  for (const asset of Object.values(manifest.assets)) {
+    const reference = published.files[`/${asset.bundle_file}`];
+    if (!reference || !/^objects\/[a-f0-9]{64}\.js$/.test(reference.object ?? '') ||
+        reference.contentType !== 'text/javascript; charset=utf-8' ||
+        (reference.contentEncoding !== undefined && reference.contentEncoding !== 'gzip')) {
+      throw new Error('Public bundle reference rejected');
+    }
+    const filename = join(root, reference.object);
+    if (await realpath(filename) !== filename) throw new Error('Public object symlink rejected');
+    const stored = await readBounded(filename);
+    if (sha256(stored) !== reference.object.slice(8, -3)) throw new Error('Public object integrity failure');
+    const decoded = reference.contentEncoding === 'gzip'
+      ? gunzipSync(stored, { maxOutputLength: maxFileBytes }) : stored;
+    if (sha256(decoded) !== asset.bundle_sha256) throw new Error('Private map and public bundle do not match');
+  }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
