@@ -33,3 +33,9 @@ The private manifest includes a generated/original-coordinate probe derived with
 Before contacting GCS, the publisher reads the existing static export's `manifest.json`, checks its full revision and map exclusion, validates each content-addressed JavaScript object, boundedly decompresses it and compares its decoded SHA256 with the matching private bundle. The actual public artifact bytes must match; sharing a build revision alone is insufficient provenance.
 
 The current Cloud map upload remains required until this path is verified. The recovered production release must stay enrolled while cached clients still use it. Prepared source and passing local tests do not establish that private publishing or automatic enrollment is active.
+
+## Builder permission acceptance
+
+After this workflow reaches main, dispatch `Verify private artifact builder permissions` on main. It uses the existing main-only WIF identity, without impersonation grants to the operator. It proves artifact creation and receipt reading succeed while artifact reading, listing, overwriting, deleting and receipt creation fail. Only fixed operation names and HTTP statuses appear in output.
+
+The check creates one small `test_only:true, verified:false` object below `artifacts/Manifests.io/__iam_acceptance__/`, keyed by the Actions run and attempt. It reads the operator-provisioned receipt fixture `receipts/Manifests.io/__iam_acceptance__/20261113.json`. Neither path can trigger release import because neither is a full source revision. The builder deliberately lacks cleanup permission; the operator removes synthetic acceptance fixtures after recording the results. Never use a real release or a successful readiness receipt for this check.

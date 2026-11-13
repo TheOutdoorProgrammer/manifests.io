@@ -30,7 +30,7 @@ jobs:
       - run: make test
       - run: npm --prefix frontend run test:edge
       - name: Verify private artifact integrity tooling
-        run: node --test frontend/scripts/private-source-maps.test.mjs frontend/scripts/publish-private-source-maps.test.mjs
+        run: node --test frontend/scripts/private-source-maps.test.mjs frontend/scripts/publish-private-source-maps.test.mjs frontend/scripts/verify-builder-artifact-iam.test.mjs
       - run: go vet ./...
       - name: Install Chromium
         working-directory: frontend
