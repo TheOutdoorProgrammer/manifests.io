@@ -26,6 +26,8 @@ jobs:
       - run: make static VERSION="$GITHUB_SHA" VITE_APP_VERSION="$GITHUB_SHA"
       - run: make test
       - run: npm --prefix frontend run test:edge
+      - name: Verify private artifact integrity tooling
+        run: node --test frontend/scripts/private-source-maps.test.mjs
       - run: go vet ./...
       - name: Install Chromium
         working-directory: frontend
