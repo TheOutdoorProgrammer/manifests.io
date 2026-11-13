@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
@@ -74,4 +74,44 @@ test('publication waits for independently verified receipt and uploads manifest 
   publicManifest.files['/assets/app.js'].object = unrelatedObject;
   await writeFile(join(staticDirectory, 'manifest.json'), JSON.stringify(publicManifest));
   await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /do not match/);
+});
+
+test('preview publication uses only its immutable app prefix and matching receipt', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'preview-publish-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const source = join(root, 'source');
+  const server = join(root, 'server');
+  await mkdir(source);
+  await mkdir(join(server, 'assets'), { recursive: true });
+  await writeFile(join(server, 'context-guard.js'), await readFile(new URL('../../public/context-guard.js', import.meta.url)));
+  await writeFile(join(source, 'app.js'), 'throw Error();');
+  await writeFile(join(source, 'app.js.map'), JSON.stringify({ version: 3, sources: ['src/app.ts'], names: [], mappings: 'AAAA' }));
+  await writeFile(join(server, 'assets/app.js'), 'throw Error();');
+  const release = 'a'.repeat(40);
+  await writeFile(join(server, 'build-identity.json'), JSON.stringify({ app: 'manifests-preview', release, profile: 'preview-server' }));
+  const output = join(root, 'private');
+  const packed = await packPrivateMaps(source, output, release, 'preview-server');
+  let receiptApp = 'Manifests.io';
+  const uploads = [];
+  const request = async (url, options) => {
+    const target = new URL(url);
+    assert.equal(options.redirect, 'error');
+    if (options.method === 'POST') {
+      assert.equal(target.searchParams.get('ifGenerationMatch'), '0');
+      const name = target.searchParams.get('name');
+      assert(name.startsWith(`artifacts/manifests-preview/${release}/`));
+      uploads.push(name);
+      return new Response('', { status: 200 });
+    }
+    assert.equal(decodeURIComponent(target.pathname.split('/o/')[1]), `receipts/manifests-preview/${release}.json`);
+    if (uploads.length === 0) return new Response('', { status: 404 });
+    return Response.json({ app: receiptApp, release, manifest_sha256: packed.manifest_sha256,
+      verified: true, verified_at: new Date().toISOString(), gateway_image: `example/gateway@sha256:${'b'.repeat(64)}` });
+  };
+  const options = { profile: 'preview-server', serverDirectory: server, request, attempts: 1, sleep: async () => {} };
+  await assert.rejects(publishPrivateMaps(output, release, 'synthetic-token', options), /identity mismatch/);
+  assert.equal(uploads.at(-1), `artifacts/manifests-preview/${release}/manifest.json`);
+  receiptApp = 'manifests-preview';
+  assert.equal(await publishPrivateMaps(output, release, 'synthetic-token', options), packed.manifest_sha256);
+  await assert.rejects(publishPrivateMaps(output, 'b'.repeat(40), 'synthetic-token', options), /Release mismatch/);
 });

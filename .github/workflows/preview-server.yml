@@ -1,0 +1,85 @@
+name: Publish preview server candidate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manifests-preview-server
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    if: github.repository == 'TheOutdoorProgrammer/manifests.io' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      IMAGE: us-east1-docker.pkg.dev/nwf-shared/apps/manifests-io
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Verify source and privacy contracts
+        run: |
+          npm --prefix frontend ci --no-audit --no-fund
+          make test
+          go vet ./...
+          npm --prefix frontend run typecheck
+          node --test frontend/scripts/private-source-maps.test.mjs frontend/scripts/publish-private-source-maps.test.mjs
+      - name: Verify runnable image and exact private artifacts
+        run: bash scripts/verify-preview-image.sh
+      - name: Authenticate existing main-only publisher
+        id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          project_id: nwf-shared
+          workload_identity_provider: projects/155511170166/locations/global/workloadIdentityPools/github/providers/github
+          service_account: manifests-builder@nwf-shared.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: false
+      - name: Admit exact private preview artifacts
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          node frontend/scripts/publish-private-source-maps.mjs \
+            "$RUNNER_TEMP/preview-private-package" "$RUNNER_TEMP/preview-server-dist" preview-server
+      - name: Publish immutable server candidate
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          DOCKER_CONFIG: ${{ runner.temp }}/preview-docker
+        run: |
+          node --input-type=module <<'NODE'
+          const endpoint = `https://artifactregistry.googleapis.com/v1/projects/nwf-shared/locations/us-east1/repositories/apps/packages/manifests-io/tags/${process.env.GITHUB_SHA}`;
+          const response = await fetch(endpoint, {
+            headers: { Authorization: `Bearer ${process.env.ACCESS_TOKEN}` },
+            redirect: 'error', signal: AbortSignal.timeout(30000),
+          });
+          await response.body?.cancel();
+          if (response.status !== 404) throw new Error('Candidate tag must be absent; immutable publication refused');
+          NODE
+          printf '%s' "$ACCESS_TOKEN" | docker login -u oauth2accesstoken --password-stdin https://us-east1-docker.pkg.dev
+          trap 'docker logout us-east1-docker.pkg.dev' EXIT
+          docker tag manifests-preview:verified "$IMAGE:$GITHUB_SHA"
+          docker push "$IMAGE:$GITHUB_SHA"
+          docker inspect "$IMAGE:$GITHUB_SHA" --format '{{json .RepoDigests}}' >> "$GITHUB_STEP_SUMMARY"
+          printf 'Preview candidate only. No deployment or production static pointer was changed.\n' >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove temporary containers and private build outputs
+        if: always()
+        run: |
+          docker rm -f preview-smoke preview-assets 2>/dev/null || true
+          rm -rf "$RUNNER_TEMP/preview-private-build" "$RUNNER_TEMP/preview-private-package" \
+            "$RUNNER_TEMP/preview-server-dist" "$RUNNER_TEMP/preview-docker"
+          docker builder prune -af

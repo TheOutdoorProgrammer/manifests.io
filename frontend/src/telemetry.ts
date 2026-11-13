@@ -216,7 +216,7 @@ const analyticsRequests = new RegExp(`^${analyticsHost.replaceAll('.', '\\.')}(?
 export function telemetryConfig(url: string, version = 'development'): BrowserConfig {
   return {
     url,
-    app: { name: 'Manifests.io', version, environment: import.meta.env.MODE },
+    app: { name: import.meta.env.VITE_FARO_APP_NAME || 'Manifests.io', version, environment: import.meta.env.MODE },
     beforeSend: sanitizeTelemetry,
     ignoreUrls: [analyticsRequests],
     sessionTracking: { persistent: false },
@@ -239,7 +239,8 @@ export function initializeObservability() {
   const local = !import.meta.env.PROD || loopback.has(window.location.hostname)
   if (local && !import.meta.env.VITE_FARO_URL) return
   try {
-    const url = new URL(import.meta.env.VITE_FARO_URL || productionCollector)
+    const url = new URL(import.meta.env.VITE_FARO_URL ||
+      (import.meta.env.VITE_FARO_APP_NAME === 'manifests-preview' ? 'https://rum.stout.zone/collect/manifests-preview' : productionCollector))
     if (local && !loopback.has(url.hostname)) return
     faro = initializeFaro(telemetryConfig(url.href, import.meta.env.VITE_APP_VERSION || 'development'))
   } catch {

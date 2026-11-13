@@ -5,12 +5,21 @@ RUN npm ci --no-audit --no-fund
 COPY frontend/ ./
 COPY public/ /src/public/
 ARG VERSION=dev
+ARG VITE_FARO_APP_NAME=Manifests.io
+ARG VITE_FARO_URL
 ENV VITE_APP_VERSION=$VERSION
-RUN npm run build
-RUN mkdir /src/source-maps && mv dist/assets/*.js.map /src/source-maps/
+ENV VITE_FARO_APP_NAME=$VITE_FARO_APP_NAME
+ENV VITE_FARO_URL=$VITE_FARO_URL
+RUN npm run build && node scripts/server-build-identity.mjs \
+    && mkdir /src/source-maps /src/private-artifacts \
+    && cp dist/assets/*.js dist/assets/*.js.map /src/private-artifacts/ \
+    && mv dist/assets/*.js.map /src/source-maps/
 
 FROM scratch AS source-maps
 COPY --from=web /src/source-maps/ /
+
+FROM scratch AS private-artifacts
+COPY --from=web /src/private-artifacts/ /assets/
 
 FROM golang:1.27-bookworm AS backend
 WORKDIR /src
@@ -27,7 +36,7 @@ COPY oaspec/kubernetes/ /src/oaspec/kubernetes/
 COPY ETL/crds/ /src/ETL/crds/
 RUN node scripts/prerender.mjs
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian12:nonroot AS runtime
 WORKDIR /app
 COPY --from=backend /src/build/manifests /app/manifests
 COPY --from=render /src/frontend/dist/ /app/frontend/dist/

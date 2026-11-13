@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { verifyPrivateMaps, verifyStaticBundles } from './private-source-maps.mjs';
+import { artifactProfile, verifyPrivateMaps, verifyStaticBundles, verifyServerBundles } from './private-source-maps.mjs';
 
 const bucket = 'nwf-shared-browser-artifacts';
 const base = 'https://storage.googleapis.com';
@@ -32,15 +32,17 @@ export async function publishPrivateMaps(directory, release, token, options = {}
     throw new Error('Publication identity required');
   }
   const request = options.request ?? fetch;
+  const profile = artifactProfile(options.profile);
   const sleep = options.sleep ?? (ms => new Promise(resolve => setTimeout(resolve, ms)));
   const attempts = options.attempts ?? 72;
   const manifestBytes = await readFile(join(directory, 'manifest.json'));
   const manifestHash = sha256(manifestBytes);
-  const manifest = await verifyPrivateMaps(directory, manifestHash);
+  const manifest = await verifyPrivateMaps(directory, manifestHash, profile.name);
   if (manifest.release !== release) throw new Error('Release mismatch');
-  await verifyStaticBundles(options.staticDirectory, manifest);
+  if (profile.name === 'preview-server') await verifyServerBundles(options.serverDirectory, manifest);
+  else await verifyStaticBundles(options.staticDirectory, manifest);
   const headers = { Authorization: `Bearer ${token}` };
-  const receiptName = `receipts/Manifests.io/${release}.json`;
+  const receiptName = `receipts/${profile.app}/${release}.json`;
   async function receiptReady() {
     const response = await request(`${base}/storage/v1/b/${bucket}/o/${encodeURIComponent(receiptName)}?alt=media`, {
       headers, redirect: 'error', signal: AbortSignal.timeout(30_000),
@@ -48,7 +50,7 @@ export async function publishPrivateMaps(directory, release, token, options = {}
     if (response.status === 404) { await response.body?.cancel(); return false; }
     if (!response.ok) { await response.body?.cancel(); throw new Error('Receipt lookup failed'); }
     const receipt = await boundedResponse(response);
-    if (receipt.app !== 'Manifests.io' || receipt.release !== release ||
+    if (receipt.app !== profile.app || receipt.release !== release ||
         receipt.manifest_sha256 !== manifestHash || receipt.verified !== true ||
         !/^[^\s]+@sha256:[a-f0-9]{64}$/.test(receipt.gateway_image ?? '') ||
         !Number.isFinite(Date.parse(receipt.verified_at))) {
@@ -63,12 +65,12 @@ export async function publishPrivateMaps(directory, release, token, options = {}
     files.set(asset.map_file, asset.map_sha256);
   }
   for (const [file, expected] of files) {
-    const bytes = await readFile(join(directory, 'Manifests.io', release, file));
+    const bytes = await readFile(join(directory, profile.app, release, file));
     if (bytes.length > 16 * 1024 * 1024 || sha256(bytes) !== expected) throw new Error('Artifact changed');
-    await create(`artifacts/Manifests.io/${release}/${file}`, bytes);
+    await create(`artifacts/${profile.app}/${release}/${file}`, bytes);
   }
   // The manifest is the import trigger, so publish it only after every object.
-  await create(`artifacts/Manifests.io/${release}/manifest.json`, manifestBytes);
+  await create(`artifacts/${profile.app}/${release}/manifest.json`, manifestBytes);
   for (let attempt = 0; attempt < attempts; attempt++) {
     if (await receiptReady()) return manifestHash;
     await sleep(25_000);
@@ -90,7 +92,7 @@ export async function publishPrivateMaps(directory, release, token, options = {}
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
     const hash = await publishPrivateMaps(process.argv[2], process.env.GITHUB_SHA, process.env.ACCESS_TOKEN,
-      { staticDirectory: process.argv[3] });
+      { staticDirectory: process.argv[3], serverDirectory: process.argv[3], profile: process.argv[4] });
     console.log(JSON.stringify({ manifest_sha256: hash, enrolled: true }));
   } catch {
     console.error('Private browser artifact publication or enrollment failed');

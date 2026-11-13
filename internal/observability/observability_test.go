@@ -117,7 +117,16 @@ func TestExporterOptIn(t *testing.T) {
 	}
 }
 
+func TestRejectsUnapprovedServiceIdentity(t *testing.T) {
+	t.Setenv("OTEL_SERVICE_NAME", "private-sentinel")
+	_, err := SetupWithWriter(t.Context(), "synthetic-test", io.Discard)
+	if err == nil || strings.Contains(err.Error(), "private-sentinel") {
+		t.Fatal("unapproved service identity accepted or exposed")
+	}
+}
+
 func TestOTLPHTTPExportsCorrelatedLogsAndTraces(t *testing.T) {
+	t.Setenv("OTEL_SERVICE_NAME", "manifests-preview")
 	type export struct {
 		path string
 		body []byte
@@ -201,6 +210,9 @@ func TestOTLPHTTPExportsCorrelatedLogsAndTraces(t *testing.T) {
 			t.Fatalf("unexpected export path %s", item.path)
 		}
 		encoded := protojson.Format(message)
+		if !strings.Contains(encoded, "manifests-preview") {
+			t.Fatal("configured service identity missing from export")
+		}
 		if strings.Contains(encoded, "private") || strings.Contains(encoded, "secret-url") || !strings.Contains(encoded, "GET /api/page") {
 			t.Fatalf("unsafe or incomplete export: %s", encoded)
 		}

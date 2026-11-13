@@ -21,6 +21,65 @@ variable "cloud_run_deletion_protection" {
   default     = true
 }
 
+variable "cloud_run_cpu_idle" {
+  description = "Throttle CPU outside requests; false preserves an existing instance-based preview."
+  type        = bool
+  default     = true
+}
+
+variable "cloud_run_liveness_probe" {
+  description = "Optional existing HTTP liveness probe to preserve during runtime adoption."
+  type = object({
+    path              = string
+    port              = number
+    period_seconds    = number
+    timeout_seconds   = number
+    failure_threshold = number
+  })
+  default = null
+  validation {
+    condition = var.cloud_run_liveness_probe == null ? true : (
+      var.cloud_run_liveness_probe.path == "/healthz" &&
+      var.cloud_run_liveness_probe.port == 8080 &&
+      var.cloud_run_liveness_probe.period_seconds >= 1 && var.cloud_run_liveness_probe.period_seconds <= 240 &&
+      var.cloud_run_liveness_probe.timeout_seconds >= 1 && var.cloud_run_liveness_probe.timeout_seconds <= var.cloud_run_liveness_probe.period_seconds &&
+      var.cloud_run_liveness_probe.failure_threshold >= 1 && var.cloud_run_liveness_probe.failure_threshold <= 10 &&
+      alltrue([for value in [var.cloud_run_liveness_probe.period_seconds, var.cloud_run_liveness_probe.timeout_seconds, var.cloud_run_liveness_probe.failure_threshold] : floor(value) == value])
+    )
+    error_message = "Use /healthz on port 8080 with bounded integer probe settings."
+  }
+}
+
+variable "otel_bsp_schedule_delay_ms" {
+  description = "Optional trace batch delay; null preserves the current exporter default."
+  type        = number
+  default     = null
+  validation {
+    condition     = var.otel_bsp_schedule_delay_ms == null ? true : (var.otel_bsp_schedule_delay_ms >= 1 && var.otel_bsp_schedule_delay_ms <= 60000 && floor(var.otel_bsp_schedule_delay_ms) == var.otel_bsp_schedule_delay_ms)
+    error_message = "Use null or an integer delay from 1 to 60000 milliseconds."
+  }
+}
+
+variable "otel_blrp_schedule_delay_ms" {
+  description = "Optional log batch delay; null preserves the current exporter default."
+  type        = number
+  default     = null
+  validation {
+    condition     = var.otel_blrp_schedule_delay_ms == null ? true : (var.otel_blrp_schedule_delay_ms >= 1 && var.otel_blrp_schedule_delay_ms <= 60000 && floor(var.otel_blrp_schedule_delay_ms) == var.otel_blrp_schedule_delay_ms)
+    error_message = "Use null or an integer delay from 1 to 60000 milliseconds."
+  }
+}
+
+variable "otel_service_name" {
+  description = "Optional canonical runtime identity; null preserves the compiled default."
+  type        = string
+  default     = null
+  validation {
+    condition     = var.otel_service_name == null ? true : contains(["manifests.io", "manifests-preview"], var.otel_service_name)
+    error_message = "Use null, manifests.io or manifests-preview."
+  }
+}
+
 variable "static_bucket_name" {
   description = "Optional globally unique bucket for immutable public static objects."
   type        = string

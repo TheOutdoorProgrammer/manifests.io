@@ -63,7 +63,7 @@ resource "google_cloud_run_v2_service" "app" {
           cpu    = "1"
           memory = "1Gi"
         }
-        cpu_idle          = true
+        cpu_idle          = var.cloud_run_cpu_idle
         startup_cpu_boost = true
       }
       startup_probe {
@@ -73,6 +73,18 @@ resource "google_cloud_run_v2_service" "app" {
         http_get {
           path = "/readyz"
           port = 8080
+        }
+      }
+      dynamic "liveness_probe" {
+        for_each = var.cloud_run_liveness_probe == null ? [] : [var.cloud_run_liveness_probe]
+        content {
+          period_seconds    = liveness_probe.value.period_seconds
+          timeout_seconds   = liveness_probe.value.timeout_seconds
+          failure_threshold = liveness_probe.value.failure_threshold
+          http_get {
+            path = liveness_probe.value.path
+            port = liveness_probe.value.port
+          }
         }
       }
       env {
@@ -87,6 +99,16 @@ resource "google_cloud_run_v2_service" "app" {
         name  = "OTEL_EXPORTER_OTLP_PROTOCOL"
         value = "http/protobuf"
       }
+      dynamic "env" {
+        for_each = [for setting in [
+          { name = "OTEL_BSP_SCHEDULE_DELAY", value = var.otel_bsp_schedule_delay_ms },
+          { name = "OTEL_BLRP_SCHEDULE_DELAY", value = var.otel_blrp_schedule_delay_ms },
+        ] : setting if setting.value != null]
+        content {
+          name  = env.value.name
+          value = tostring(env.value.value)
+        }
+      }
       env {
         name = "OTEL_EXPORTER_OTLP_HEADERS"
         value_source {
@@ -94,6 +116,13 @@ resource "google_cloud_run_v2_service" "app" {
             secret  = var.otlp_headers_secret
             version = var.otlp_headers_secret_version
           }
+        }
+      }
+      dynamic "env" {
+        for_each = var.otel_service_name == null ? [] : [var.otel_service_name]
+        content {
+          name  = "OTEL_SERVICE_NAME"
+          value = env.value
         }
       }
     }

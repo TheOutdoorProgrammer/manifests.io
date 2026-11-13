@@ -10,6 +10,11 @@ const maxFileBytes = 16 * 1024 * 1024;
 const maxTotalBytes = 64 * 1024 * 1024;
 const bundleName = /^[A-Za-z0-9_-]{1,120}\.js$/;
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+export function artifactProfile(name = 'production-static') {
+  if (name === 'production-static') return { name, app: 'Manifests.io', origin: 'https://www.manifests.io', assetBase: release => `/releases/${release}/assets/` };
+  if (name === 'preview-server') return { name, app: 'manifests-preview', origin: 'https://manifests-preview-155511170166.us-east1.run.app', assetBase: () => '/assets/' };
+  throw new Error('Invalid artifact profile');
+}
 const inside = (parent, child) => {
   const path = relative(parent, child);
   return path === '' || (!path.startsWith('..') && !isAbsolute(path));
@@ -34,16 +39,17 @@ async function readBounded(path) {
   }
 }
 
-function validateMap(bytes, bundle, release) {
+function validateMap(bytes, bundle, release, profile) {
   const map = JSON.parse(bytes);
   if (map.version !== 3 || !Array.isArray(map.sources) || typeof map.mappings !== 'string' ||
       (map.file !== undefined && map.file !== bundle &&
-       map.file !== `https://www.manifests.io/releases/${release}/assets/${bundle}`)) {
+       map.file !== `${profile.origin}${profile.assetBase(release)}${bundle}`)) {
     throw new Error('Invalid source map');
   }
 }
 
-export async function packPrivateMaps(directory, destination, release) {
+export async function packPrivateMaps(directory, destination, release, profileName = 'production-static') {
+  const profile = artifactProfile(profileName);
   if (!/^[a-f0-9]{40}$/.test(release ?? '')) throw new Error('Full release SHA required');
   const source = await realpath(directory);
   const target = join(await realpath(dirname(resolve(destination))), basename(resolve(destination)));
@@ -66,12 +72,12 @@ export async function packPrivateMaps(directory, destination, release) {
     if (!bundleName.test(bundle)) throw new Error('Invalid artifact name');
     const mapBytes = await readBounded(join(source, name));
     const bundleBytes = await readBounded(join(source, bundle));
-    validateMap(mapBytes, bundle, release);
+    validateMap(mapBytes, bundle, release, profile);
     if (!probe) {
       eachMapping(new TraceMap(JSON.parse(mapBytes)), mapping => {
         if (!probe && typeof mapping.source === 'string' && mapping.originalLine > 0) {
           probe = {
-            script: `/releases/${release}/assets/${bundle}`,
+            script: `${profile.assetBase(release)}${bundle}`,
             line: mapping.generatedLine,
             column: mapping.generatedColumn + 1,
             source_sha256: sha256(Buffer.from(mapping.source)),
@@ -85,7 +91,7 @@ export async function packPrivateMaps(directory, destination, release) {
     if (total > maxTotalBytes) throw new Error('Private artifacts exceed receiver capacity');
     files.set(name, mapBytes);
     files.set(bundle, bundleBytes);
-    assets[`/releases/${release}/assets/${bundle}`] = {
+    assets[`${profile.assetBase(release)}${bundle}`] = {
       map_file: `assets/${name}`,
       map_sha256: sha256(mapBytes),
       bundle_file: `assets/${bundle}`,
@@ -95,14 +101,15 @@ export async function packPrivateMaps(directory, destination, release) {
   if (!probe) throw new Error('Source maps have no verification mapping');
   // Exclusive creation prevents a retry from replacing an immutable release.
   await mkdir(target, { mode: 0o700 });
-  const artifacts = join(target, 'Manifests.io', release, 'assets');
+  const artifacts = join(target, profile.app, release, 'assets');
   await mkdir(artifacts, { recursive: true, mode: 0o700 });
   for (const [name, bytes] of files) {
     await writeFile(join(artifacts, name), bytes, { flag: 'wx', mode: 0o600 });
   }
   const manifest = {
     schema: 1,
-    app: 'Manifests.io',
+    app: profile.app,
+    ...(profileName === 'preview-server' ? { profile: profileName } : {}),
     release,
     total_bytes: total,
     assets,
@@ -113,13 +120,15 @@ export async function packPrivateMaps(directory, destination, release) {
   return { manifest_sha256: sha256(bytes), files: files.size, total_bytes: total };
 }
 
-export async function verifyPrivateMaps(directory, expectedManifestHash) {
+export async function verifyPrivateMaps(directory, expectedManifestHash, profileName = 'production-static') {
+  const profile = artifactProfile(profileName);
   if (!/^[a-f0-9]{64}$/.test(expectedManifestHash ?? '')) throw new Error('Manifest hash required');
   const root = await realpath(directory);
   const bytes = await readBounded(join(root, 'manifest.json'));
   if (sha256(bytes) !== expectedManifestHash) throw new Error('Manifest integrity failure');
   const manifest = JSON.parse(bytes);
-  if (manifest.schema !== 1 || manifest.app !== 'Manifests.io' ||
+  if (manifest.schema !== 1 || manifest.app !== profile.app ||
+      (manifest.profile ?? 'production-static') !== profileName ||
       !/^[a-f0-9]{40}$/.test(manifest.release ?? '') ||
       typeof manifest.assets !== 'object' || manifest.assets === null || Array.isArray(manifest.assets)) {
     throw new Error('Invalid private artifact manifest');
@@ -129,7 +138,7 @@ export async function verifyPrivateMaps(directory, expectedManifestHash) {
   let total = 0;
   for (const [publicPath, artifact] of entries) {
     const bundle = publicPath.split('/').at(-1);
-    if (!bundleName.test(bundle) || publicPath !== `/releases/${manifest.release}/assets/${bundle}` ||
+    if (!bundleName.test(bundle) || publicPath !== `${profile.assetBase(manifest.release)}${bundle}` ||
         artifact.bundle_file !== `assets/${bundle}` || artifact.map_file !== `assets/${bundle}.map`) {
       throw new Error('Invalid artifact path');
     }
@@ -141,7 +150,7 @@ export async function verifyPrivateMaps(directory, expectedManifestHash) {
       if (total > maxTotalBytes || sha256(content) !== artifact[`${type}_sha256`]) {
         throw new Error('Artifact integrity failure');
       }
-      if (type === 'map') validateMap(content, bundle, manifest.release);
+      if (type === 'map') validateMap(content, bundle, manifest.release, profile);
     }
   }
   if (total !== manifest.total_bytes) throw new Error('Artifact size mismatch');
@@ -149,6 +158,9 @@ export async function verifyPrivateMaps(directory, expectedManifestHash) {
 }
 
 export async function verifyStaticBundles(directory, manifest) {
+  if (manifest.app !== 'Manifests.io' || (manifest.profile ?? 'production-static') !== 'production-static') {
+    throw new Error('Static publication profile mismatch');
+  }
   const root = await realpath(directory);
   const published = JSON.parse(await readBounded(join(root, 'manifest.json')));
   if (published.format !== 1 || published.release !== manifest.release ||
@@ -172,13 +184,46 @@ export async function verifyStaticBundles(directory, manifest) {
   }
 }
 
+export async function verifyServerBundles(directory, manifest) {
+  if (manifest.app !== 'manifests-preview' || manifest.profile !== 'preview-server') {
+    throw new Error('Server publication profile mismatch');
+  }
+  const root = await realpath(directory);
+  const identity = JSON.parse(await readBounded(join(root, 'build-identity.json')));
+  if (identity.app !== manifest.app || identity.release !== manifest.release || identity.profile !== manifest.profile) {
+    throw new Error('Server build identity mismatch');
+  }
+  const entries = await readdir(root, { recursive: true, withFileTypes: true });
+  if (entries.length > 512 || entries.some(entry => entry.isSymbolicLink() || entry.name.endsWith('.map'))) {
+    throw new Error('Runnable assets contain private maps or symlinks');
+  }
+  const expected = new Set(Object.values(manifest.assets).map(asset => asset.bundle_file));
+  expected.add('context-guard.js');
+  const bundles = entries.filter(entry => entry.isFile() && entry.name.endsWith('.js'))
+    .map(entry => relative(root, join(entry.parentPath, entry.name)));
+  if (bundles.length !== expected.size || bundles.some(bundle => !expected.has(bundle))) {
+    throw new Error('Runnable browser bundle set mismatch');
+  }
+  // This first-party script is served as authored, outside Vite's mapped bundles.
+  const guardSource = fileURLToPath(new URL('../../public/context-guard.js', import.meta.url));
+  if (sha256(await readBounded(join(root, 'context-guard.js'))) !== sha256(await readBounded(guardSource))) {
+    throw new Error('Runnable context guard differs from source');
+  }
+  for (const asset of Object.values(manifest.assets)) {
+    const filename = join(root, asset.bundle_file);
+    if (await realpath(filename) !== filename || sha256(await readBounded(filename)) !== asset.bundle_sha256) {
+      throw new Error('Private map and server bundle do not match');
+    }
+  }
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    const [command, directory, argument, release] = process.argv.slice(2);
+    const [command, directory, argument, release, profile = 'production-static'] = process.argv.slice(2);
     if (command === 'pack') {
-      console.log(JSON.stringify(await packPrivateMaps(directory, argument, release)));
+      console.log(JSON.stringify(await packPrivateMaps(directory, argument, release, profile)));
     } else if (command === 'verify') {
-      const manifest = await verifyPrivateMaps(directory, argument);
+      const manifest = await verifyPrivateMaps(directory, argument, release ?? 'production-static');
       console.log(JSON.stringify({ release: manifest.release, files: Object.keys(manifest.assets).length * 2 }));
     } else {
       throw new Error('Invalid command');
