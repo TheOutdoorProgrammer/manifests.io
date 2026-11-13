@@ -9,9 +9,10 @@ export default defineConfig(({ isSsrBuild }) => ({
   base: assetBase,
   plugins: [react(), ...(!isSsrBuild ? [faroUploader({
     appName: 'Manifests.io',
-    endpoint: 'https://faro-api-prod-us-east-3.grafana.net/faro/api/v1',
-    appId: '848',
-    stackId: '1807923',
+    // The plugin requires these options even when uploads are disabled.
+    endpoint: '',
+    appId: '',
+    stackId: '',
     apiKey: '',
     bundleId: release,
     gitHash: /^[a-f0-9]{40}$/.test(release) ? release : undefined,

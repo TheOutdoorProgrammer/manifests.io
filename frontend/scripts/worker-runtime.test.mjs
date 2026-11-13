@@ -93,6 +93,9 @@ test('workerd decodes gzip graph metadata and streams HTML and JSON through real
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('Content-Type'), 'text/html; charset=utf-8');
   assert.equal(response.headers.get('X-Manifests-Release'), release);
+  const connectSources = response.headers.get('Content-Security-Policy').split(';')
+    .map(directive => directive.trim()).find(directive => directive.startsWith('connect-src '));
+  assert.equal(connectSources, "connect-src 'self' https://rum.stout.zone https://g.theoutdoorprogrammer.com");
   assert.equal(response.headers.get('Cache-Control'), 'public, max-age=0, s-maxage=604800, must-revalidate');
   assert.equal(await response.text(), html);
   const api = await f.request('/api/page?item=kubernetes&version=1&resource=Pod&path=Context&trail=ignored');

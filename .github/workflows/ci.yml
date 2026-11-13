@@ -60,11 +60,6 @@ jobs:
       - name: Stop static Worker
         if: always() && steps.static.outcome == 'success'
         run: kill "$STATIC_PID"
-      - name: Upload private browser source maps
-        if: github.repository == 'TheOutdoorProgrammer/manifests.io' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        env:
-          FARO_SOURCEMAP_API_KEY: ${{ secrets.FARO_SOURCEMAP_API_KEY }}
-        run: node frontend/scripts/upload-source-maps.mjs frontend/dist/assets
       - name: Authenticate private artifact publisher
         id: artifact-auth
         if: github.repository == 'TheOutdoorProgrammer/manifests.io' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

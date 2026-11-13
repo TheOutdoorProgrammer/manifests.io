@@ -20,7 +20,7 @@ The gateway's `verify-artifacts` command additionally parses source maps through
 
 ## Required automated deployment integration
 
-The prepared CI runs `publish-private-source-maps.mjs` after packaging and waits for a matching gateway receipt before it can package or publish the public static image. The separate Talos importer and GCP identities must be deployed and verified before this source is promoted. The pipeline enforces the following contract:
+CI runs `publish-private-source-maps.mjs` after packaging and waits for a matching gateway receipt before it can package or publish the public static image. The separate Talos importer and GCP identities provide this admission boundary. The pipeline enforces the following contract:
 
 1. The existing main-only GitHub WIF identity writes immutable private GCS artifact objects with generation-match-zero preconditions. It must not have delete, overwrite or bucket-policy permissions. Public Actions artifacts, the public static bucket, OCI images and Harbor proxy images must never contain maps.
 2. A separate trusted deployment identity reads the private artifact, verifies every byte against the manifest, stages a new immutable PVC directory and merges the release into the existing app policy without removing retained releases. It validates and rolls the exact gateway image, then proves the new release is loaded. This identity must not execute scripts from the application artifact.
@@ -32,7 +32,7 @@ The private manifest includes a generated/original-coordinate probe derived with
 
 Before contacting GCS, the publisher reads the existing static export's `manifest.json`, checks its full revision and map exclusion, validates each content-addressed JavaScript object, boundedly decompresses it and compares its decoded SHA256 with the matching private bundle. The actual public artifact bytes must match; sharing a build revision alone is insufficient provenance.
 
-The current Cloud map upload remains required until this path is verified. The recovered production release must stay enrolled while cached clients still use it. Prepared source and passing local tests do not establish that private publishing or automatic enrollment is active.
+The private publisher, actual builder permissions, importer receipt and production browser decoding have been verified together. Cloud map uploads are no longer part of publication. Retain recovered and subsequent releases while cached clients or rollback can still use them. Removing the old upload step does not delete historical Cloud maps or revoke shared credentials; those require their own consumer inventory.
 
 ## Builder permission acceptance
 
