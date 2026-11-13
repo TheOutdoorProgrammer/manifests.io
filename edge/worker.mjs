@@ -4,7 +4,7 @@ const security = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'X-Frame-Options': 'DENY',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://rum.stout.zone https://faro-collector-prod-us-east-3.grafana.net https://g.theoutdoorprogrammer.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://rum.stout.zone https://g.theoutdoorprogrammer.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
 };
 const own = (object, key) => Object.hasOwn(object ?? {}, key) ? object[key] : undefined;
 const bytes = value => new TextEncoder().encode(value).length;
