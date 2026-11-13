@@ -229,7 +229,7 @@ export function telemetryConfig(url: string, version = 'development'): BrowserCo
   }
 }
 
-const productionCollector = 'https://faro-collector-prod-us-east-3.grafana.net/collect/84a6beb18042862a3436000826d8a36f'
+const productionCollector = 'https://rum.stout.zone/collect/84a6beb18042862a3436000826d8a36f'
 let faro: ReturnType<typeof initializeFaro> | undefined
 
 export function initializeObservability() {
