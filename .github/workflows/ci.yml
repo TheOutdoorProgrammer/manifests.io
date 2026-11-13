@@ -10,6 +10,28 @@ permissions:
   contents: read
 
 jobs:
+  preview-server:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: .node-version
+      - run: npm --prefix frontend ci --no-audit --no-fund
+      - name: Verify preview image without credentials or publication
+        run: bash scripts/verify-preview-image.sh
+      - name: Remove temporary containers and private build outputs
+        if: always()
+        run: |
+          docker rm -f preview-smoke preview-assets 2>/dev/null || true
+          rm -rf "$RUNNER_TEMP/preview-private-build" "$RUNNER_TEMP/preview-private-package" "$RUNNER_TEMP/preview-server-dist"
+          docker builder prune -af
+
   verify:
     runs-on: ubuntu-latest
     permissions:

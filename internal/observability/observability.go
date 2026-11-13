@@ -38,6 +38,14 @@ func Setup(ctx context.Context, version string) (func(context.Context) error, er
 }
 
 func SetupWithWriter(ctx context.Context, version string, output io.Writer) (func(context.Context) error, error) {
+	serviceName := os.Getenv("OTEL_SERVICE_NAME")
+	switch serviceName {
+	case "":
+		serviceName = "manifests.io"
+	case "manifests.io", "manifests-preview":
+	default:
+		return nil, errors.New("invalid telemetry service identity")
+	}
 	exporters.Store(nil)
 	request := &requestExporters{}
 	local := slog.NewJSONHandler(output, nil)
@@ -45,7 +53,7 @@ func SetupWithWriter(ctx context.Context, version string, output io.Writer) (fun
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 	// Exporter errors can contain credentials in their endpoint URLs.
 	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(error) { slog.New(local).Warn("telemetry export failed") }))
-	res := resource.NewSchemaless(attribute.String("service.name", "manifests.io"), attribute.String("service.version", version))
+	res := resource.NewSchemaless(attribute.String("service.name", serviceName), attribute.String("service.version", version))
 	var shutdowns []func(context.Context) error
 	shutdown := func(ctx context.Context) error {
 		var failures []error

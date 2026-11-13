@@ -1,5 +1,11 @@
 # Manifests.io
 
+The independent Cloud Run preview uses the `manifests-preview` browser and server identity. Its server build sets `VITE_FARO_APP_NAME=manifests-preview`, `VITE_FARO_URL=https://rum.stout.zone/collect/manifests-preview` and a full source SHA as `VERSION`; runtime `OTEL_SERVICE_NAME=manifests-preview` selects the matching backend identity. Production defaults remain unchanged. Localhost browser telemetry still requires an explicit loopback collector.
+
+`Publish preview server candidate` is a manual, main-only workflow. It builds and exercises the runnable image, compares its extracted browser bundles against the exact private maps, waits for the private gateway receipt, then publishes an immutable source-SHA tag in `apps/manifests-io`. It neither deploys Cloud Run nor updates the production static pointer. The PR-safe `preview-server` job runs the same container checks without WIF or publication.
+
+The Docker `private-artifacts` target exports exact matching bundle/map bytes only to the runner's private temporary directory. Maps and private build cache must never be uploaded as CI artifacts or registry layers. Existing static packages retain the `Manifests.io` app and versioned public asset paths; the explicit `preview-server` profile uses `manifests-preview` and `/assets/` paths. Admission requires the preview registry/importer profile and narrow GCS permissions to be deployed first. Keep cached release artifacts for symbolication and rollback; never replace an existing app/release manifest.
+
 Browse Kubernetes and custom resource schemas with a fully static Go/React build, Cloudflare delivery, and automated upstream schema updates.
 
 Choose a product and version, filter resources, then follow fields into their types. Descriptions, required fields, arrays, maps, unions, validation constraints, and alternate API versions come from the original schemas. Existing resource URLs and the legacy `linked`, `oneOf`, and `key` parameters remain supported.
