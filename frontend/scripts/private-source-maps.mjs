@@ -3,6 +3,7 @@ import { mkdir, open, readdir, realpath, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { TraceMap, eachMapping } from '@jridgewell/trace-mapping';
 
 const maxFileBytes = 16 * 1024 * 1024;
 const maxTotalBytes = 64 * 1024 * 1024;
@@ -57,6 +58,7 @@ export async function packPrivateMaps(directory, destination, release) {
   }
   const files = new Map();
   const assets = {};
+  let probe;
   let total = 0;
   for (const name of names) {
     const bundle = name.slice(0, -4);
@@ -64,6 +66,20 @@ export async function packPrivateMaps(directory, destination, release) {
     const mapBytes = await readBounded(join(source, name));
     const bundleBytes = await readBounded(join(source, bundle));
     validateMap(mapBytes, bundle, release);
+    if (!probe) {
+      eachMapping(new TraceMap(JSON.parse(mapBytes)), mapping => {
+        if (!probe && typeof mapping.source === 'string' && mapping.originalLine > 0) {
+          probe = {
+            script: `/releases/${release}/assets/${bundle}`,
+            line: mapping.generatedLine,
+            column: mapping.generatedColumn + 1,
+            source_sha256: sha256(Buffer.from(mapping.source)),
+            source_line: mapping.originalLine,
+            source_column: mapping.originalColumn,
+          };
+        }
+      });
+    }
     total += mapBytes.length + bundleBytes.length;
     if (total > maxTotalBytes) throw new Error('Private artifacts exceed receiver capacity');
     files.set(name, mapBytes);
@@ -75,6 +91,7 @@ export async function packPrivateMaps(directory, destination, release) {
       bundle_sha256: sha256(bundleBytes),
     };
   }
+  if (!probe) throw new Error('Source maps have no verification mapping');
   // Exclusive creation prevents a retry from replacing an immutable release.
   await mkdir(target, { mode: 0o700 });
   const artifacts = join(target, 'Manifests.io', release, 'assets');
@@ -88,6 +105,7 @@ export async function packPrivateMaps(directory, destination, release) {
     release,
     total_bytes: total,
     assets,
+    probe,
   };
   const bytes = Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`);
   await writeFile(join(target, 'manifest.json'), bytes, { flag: 'wx', mode: 0o600 });

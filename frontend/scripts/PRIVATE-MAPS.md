@@ -20,7 +20,7 @@ The gateway's `verify-artifacts` command additionally parses source maps through
 
 ## Required automated deployment integration
 
-The transport and enrollment integration is not implemented by this tool. Do not promote the local collector release until the following pipeline exists and passes:
+The prepared CI runs `publish-private-source-maps.mjs` after packaging and waits for a matching gateway receipt before it can package or publish the public static image. The separate Talos importer and GCP identities must be deployed and verified before this source is promoted. The pipeline enforces the following contract:
 
 1. The existing main-only GitHub WIF identity writes immutable private GCS artifact objects with generation-match-zero preconditions. It must not have delete, overwrite or bucket-policy permissions. Public Actions artifacts, the public static bucket, OCI images and Harbor proxy images must never contain maps.
 2. A separate trusted deployment identity reads the private artifact, verifies every byte against the manifest, stages a new immutable PVC directory and merges the release into the existing app policy without removing retained releases. It validates and rolls the exact gateway image, then proves the new release is loaded. This identity must not execute scripts from the application artifact.
@@ -28,4 +28,6 @@ The transport and enrollment integration is not implemented by this tool. Do not
 4. Static OCI publication requires the matching receipt. A failed import, capacity limit, rollout or receipt lookup stops publication. Retries must revalidate existing objects; a generation-precondition failure alone is not evidence of correct bytes.
 5. Retain live, cached and rollback releases. Garbage collection needs explicit release reachability, not the seven-day telemetry retention period. Gateway startup bounds remain enforced; capacity changes require review before enrollment.
 
-The current Cloud map upload remains required until this path is verified. The recovered production release must stay enrolled while cached clients still use it. This document defines a release prerequisite, not a claim that private publishing or automatic enrollment is active.
+The private manifest includes a generated/original-coordinate probe derived with the existing source-map library. The importer checks it with the gateway's actual decoder and private synthetic ingestion path before issuing the receipt. Neither the probe nor the receipt includes source content.
+
+The current Cloud map upload remains required until this path is verified. The recovered production release must stay enrolled while cached clients still use it. Prepared source and passing local tests do not establish that private publishing or automatic enrollment is active.
