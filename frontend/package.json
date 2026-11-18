@@ -18,10 +18,10 @@
   "dependencies": {
     "@fontsource-variable/ibm-plex-sans": "^5.2.0",
     "@fontsource/ibm-plex-mono": "^5.2.0",
-    "@grafana/faro-web-sdk": "^2.13.0",
-    "@grafana/faro-web-tracing": "^2.13.0",
+    "@grafana/faro-web-sdk": "^2.14.0",
+    "@grafana/faro-web-tracing": "^2.14.0",
     "fuse.js": "7.5.0",
-    "posthog-js": "^1.444.0",
+    "posthog-js": "^1.450.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
@@ -30,20 +30,20 @@
     "@grafana/faro-rollup-plugin": "0.13.2",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/sdk-trace-web": "^2.12.0",
-    "@playwright/test": "1.64.1",
+    "@playwright/test": "1.65.1",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-react": "^6.3.0",
     "esbuild": "0.28.2",
     "jsdom": "^31.0.1",
     "miniflare": "5.20260911.0-alpha",
     "typescript": "^7.0.2",
     "url-search-params-polyfill": "8.2.5",
-    "vite": "^8.3.5",
-    "vitest": "^5.0.5"
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
   }
 }
